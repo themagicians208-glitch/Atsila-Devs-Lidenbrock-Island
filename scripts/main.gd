@@ -8,6 +8,9 @@ const COIN := preload("res://objects/coin.tscn")
 const FLAG := preload("res://models/flag.glb")
 const GRAVITY_ZONE_SCRIPT := preload("res://scripts/anti_gravity_zone.gd")
 const SPINNING_HAZARD_SCRIPT := preload("res://scripts/spinning_hazard.gd")
+const MOVING_PLATFORM_SCRIPT := preload("res://objects/moving_platform.gd")
+const PHASE_PLATFORM_SCRIPT := preload("res://objects/phase_platform.gd")
+const PUZZLE_GATE_SCRIPT := preload("res://objects/puzzle_gate.gd")
 
 const LEVEL_NAMES := ["Cloud Hop", "Switchback Sprint", "Moonflip Maze", "Rising Ruins", "Sky Crown"]
 
@@ -19,8 +22,9 @@ const LEVEL_NAMES := ["Cloud Hop", "Switchback Sprint", "Moonflip Maze", "Rising
 var current_level := 1
 var coin_goal := 0
 var puzzle_solved := false
-var puzzle_switch: Node3D
-var switch_material: StandardMaterial3D
+var switches: Array[Node3D] = []
+var gates: Array[Node3D] = []
+var switches_pressed := 0
 var mirror_dimension := false
 var checkpoint_position := Vector3.ZERO
 var active_checkpoint := 0
@@ -44,8 +48,10 @@ func _ready() -> void:
 	hud.show_finish_message("RIGHT CLICK / Q / LB: SHIFT DIMENSION")
 	hud.continue_pressed.connect(_on_continue_pressed)
 	player.coin_collected.connect(_on_coin_collected)
+	player.died.connect(_on_player_died)
+	hud.retry_pressed.connect(_on_retry_pressed)
+	hud.menu_pressed.connect(_go_to_menu)
 	finish.body_entered.connect(_on_finish_body_entered)
-	_build_puzzle_switch()
 	_apply_dimension_visibility()
 	hud.show_controls_hint()
 
@@ -87,58 +93,26 @@ func _ensure_key_action(action_name: String, key_code: Key, joy_button: JoyButto
 
 
 func _build_level(level_number: int) -> void:
+	switches.clear()
+	gates.clear()
+	switches_pressed = 0
+	puzzle_solved = false
 	var routes := _get_level_routes()
 	var route: Array = routes[level_number - 1]
 	for child in world.get_children():
 		world.remove_child(child)
 		child.free()
+	_build_specials(level_number, route.size())
 
 	for i in range(route.size()):
 		var point: Vector3 = route[i]
-		var platform_scene: PackedScene = PLATFORM
-		match level_number:
-			1:
-				if i % 3 == 1:
-					platform_scene = PLATFORM_MEDIUM
-				elif i % 3 == 2:
-					platform_scene = PLATFORM_GRASS
-			2:
-				if i % 2 == 0:
-					platform_scene = PLATFORM_MEDIUM
-			3:
-				if i % 3 == 0:
-					platform_scene = PLATFORM_GRASS
-				else:
-					platform_scene = PLATFORM_MEDIUM
-			4:
-				if i % 3 == 1:
-					platform_scene = PLATFORM_GRASS
-			5:
-				if i % 2 == 1:
-					platform_scene = PLATFORM_MEDIUM
-		if level_number == 1 and i in [3, 6]:
-			platform_scene = PLATFORM_FALLING
-		elif level_number == 2 and i in [3, 6]:
-			platform_scene = PLATFORM_FALLING
-		elif level_number == 3 and i in [3, 7]:
-			platform_scene = PLATFORM_FALLING
-		elif level_number == 4 and i in [3, 6]:
-			platform_scene = PLATFORM_FALLING
-		elif level_number == 5 and i in [3, 6, 9]:
-			platform_scene = PLATFORM_FALLING
-		var platform: Node3D = platform_scene.instantiate()
-		platform.position = point
-		platform.rotation.y = float((i * 23 + level_number * 17) % 50) * PI / 180.0
-		if level_number == 1:
-			platform.scale.y = 0.62
-		platform.add_to_group("material_dimension")
-		world.add_child(platform)
+		_add_main_platform(level_number, route, i, point)
 
 		# The mirror path is offset, so shifting dimensions in mid-air creates alternate jumps.
 		var mirror_platform: Node3D = PLATFORM_MEDIUM.instantiate()
 		mirror_platform.name = "MirrorPlatform_%02d" % i
 		mirror_platform.position = _get_mirror_platform_point(route, i)
-		mirror_platform.rotation.y = -platform.rotation.y
+		mirror_platform.rotation.y = -float((i * 23 + level_number * 17) % 50) * PI / 180.0
 		if level_number == 1:
 			mirror_platform.scale.y = 0.62
 		mirror_platform.add_to_group("mirror_dimension")
@@ -148,12 +122,9 @@ func _build_level(level_number: int) -> void:
 		if i > 0 and i < route.size() - 1:
 			var coin: Area3D = COIN.instantiate()
 			var coin_height := 1.1 + float(i % 2) * 0.3
-			if i % 2 == 1:
-				coin.position = _get_mirror_platform_point(route, i) + Vector3(0, coin_height, 0)
-				coin.add_to_group("mirror_dimension")
-			else:
-				coin.position = point + Vector3(0, coin_height, 0)
-				coin.add_to_group("material_dimension")
+			# Coins stay visible in both dimensions so the amount in the level
+			# always matches the goal shown on the HUD.
+			coin.position = point + Vector3(0, coin_height, 0)
 			world.add_child(coin)
 
 		if i % 3 == 1:
@@ -173,8 +144,10 @@ func _build_level(level_number: int) -> void:
 		_add_checkpoint(route[checkpoint_index], checkpoint_index)
 	finish.position = goal + Vector3(0, 1.0, 0)
 	if level_number in [1, 2, 4, 5]:
+		@warning_ignore("integer_division")
 		_add_anti_gravity_zone(route[route.size() / 2])
 	_build_level_identity(level_number, route)
+	_build_puzzle(level_number, route)
 	_apply_dimension_visibility()
 
 
@@ -184,6 +157,302 @@ func _get_checkpoint_indices(level_number: int, route_size: int) -> Array[int]:
 		# The maze folds close to its start near the end, so place the second marker earlier.
 		second_checkpoint = route_size - 5
 	return [2, second_checkpoint]
+
+
+# --- Platform layout ---------------------------------------------------------
+# Difficulty escalates every level: more platforms, more moving/phase/falling
+# platforms and more switches. The special indices are spread evenly along the
+# route so no two features collide.
+
+var _special: Dictionary = {"moving": [], "phase": [], "falling": [], "all": {}}
+
+
+func _build_specials(level_number: int, n: int) -> void:
+	_special = {"moving": [], "phase": [], "falling": [], "all": {0: true, n - 1: true}}
+	var moving := _spread(_moving_count(level_number), n, _special["all"])
+	_special["moving"] = moving
+	for i in moving:
+		_special["all"][i] = true
+	var phase := _spread(_phase_count(level_number), n, _special["all"])
+	_special["phase"] = phase
+	for i in phase:
+		_special["all"][i] = true
+	var falling := _spread(_falling_count(level_number), n, _special["all"])
+	_special["falling"] = falling
+	for i in falling:
+		_special["all"][i] = true
+
+
+## Evenly distributes count picks across route indices 1..n-2, walking outward from
+## each target slot to the nearest free index so categories never overlap.
+func _spread(count: int, n: int, blocked: Dictionary) -> Array[int]:
+	var result: Array[int] = []
+	if count <= 0 or n <= 3:
+		return result
+	for k in range(count):
+		var target := 1 + int(round(float(k + 1) * float(n - 2) / float(count + 1)))
+		for step in range(n):
+			var up := target + step
+			if up > 0 and up < n - 1 and not blocked.has(up) and not result.has(up):
+				result.append(up)
+				break
+			var down := target - step
+			if down > 0 and down < n - 1 and not blocked.has(down) and not result.has(down):
+				result.append(down)
+				break
+	return result
+
+
+func _moving_count(level_number: int) -> int:
+	return [0, 2, 3, 4, 5][level_number - 1]
+
+
+func _phase_count(level_number: int) -> int:
+	return [0, 0, 2, 3, 4][level_number - 1]
+
+
+func _falling_count(level_number: int) -> int:
+	return [2, 3, 4, 5, 5][level_number - 1]
+
+
+func _ring_count(level_number: int) -> int:
+	return [3, 3, 4, 4, 5][level_number - 1]
+
+
+func _hurdle_count(level_number: int) -> int:
+	return [0, 1, 2, 3, 4][level_number - 1]
+
+
+func _wall_count(level_number: int) -> int:
+	return [0, 0, 1, 2, 3][level_number - 1]
+
+
+func _sweeper_count(level_number: int) -> int:
+	return [2, 3, 4, 5, 6][level_number - 1]
+
+
+func _switch_count(level_number: int) -> int:
+	return [1, 2, 2, 3, 3][level_number - 1]
+
+
+func _theme_tint(level_number: int) -> Color:
+	match level_number:
+		1: return Color("#83f5ef")
+		2: return Color("#ff9b4b")
+		3: return Color("#d79bff")
+		4: return Color("#d6bd91")
+	return Color("#ffd667")
+
+
+func _add_main_platform(level_number: int, route: Array, i: int, point: Vector3) -> void:
+	if i in _special["moving"]:
+		_add_moving_platform(route, i, point)
+		return
+	if i in _special["phase"]:
+		_add_phase_platform(point)
+		return
+	var platform_scene := _platform_scene_for(level_number, i)
+	var platform: Node3D = platform_scene.instantiate()
+	platform.position = point
+	platform.rotation.y = float((i * 23 + level_number * 17) % 50) * PI / 180.0
+	if level_number == 1:
+		platform.scale.y = 0.62
+	platform.add_to_group("material_dimension")
+	world.add_child(platform)
+
+
+func _platform_scene_for(level_number: int, i: int) -> PackedScene:
+	if i in _special["falling"]:
+		return PLATFORM_FALLING
+	match level_number:
+		1:
+			if i % 3 == 1:
+				return PLATFORM_MEDIUM
+			if i % 3 == 2:
+				return PLATFORM_GRASS
+		2:
+			if i % 2 == 0:
+				return PLATFORM_MEDIUM
+		3:
+			if i % 3 == 0:
+				return PLATFORM_GRASS
+			return PLATFORM_MEDIUM
+		4:
+			if i % 3 == 1:
+				return PLATFORM_GRASS
+		5:
+			if i % 2 == 1:
+				return PLATFORM_MEDIUM
+	return PLATFORM
+
+
+# --- New puzzle mechanics ----------------------------------------------------
+
+func _add_moving_platform(route: Array, i: int, point: Vector3) -> void:
+	var direction: Vector3
+	if i < route.size() - 1:
+		direction = route[i + 1] - route[i]
+	else:
+		direction = route[i] - route[i - 1]
+	direction.y = 0.0
+	direction = direction.normalized()
+	var across := Vector3(-direction.z, 0.0, direction.x)
+	var offset: Vector3 = across * (1.8 if i % 2 == 0 else -1.8)
+	var platform := AnimatableBody3D.new()
+	platform.name = "MovingPlatform"
+	platform.set_script(MOVING_PLATFORM_SCRIPT)
+	platform.position = point
+	platform.set("move_offset", offset)
+	platform.set("speed", 0.8 + float(i % 3) * 0.2)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(1.9, 0.5, 1.9)
+	shape.shape = box
+	shape.position.y = 0.25
+	platform.add_child(shape)
+	var visual := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(1.9, 0.5, 1.9)
+	visual.mesh = mesh
+	visual.position.y = 0.25
+	visual.material_override = _map_material(Color("#54e0d0"), true)
+	platform.add_child(visual)
+	world.add_child(platform)
+
+
+func _add_phase_platform(point: Vector3) -> void:
+	var platform := AnimatableBody3D.new()
+	platform.name = "PhasePlatform"
+	platform.set_script(PHASE_PLATFORM_SCRIPT)
+	platform.position = point
+	platform.set("on_duration", 2.2)
+	platform.set("off_duration", 1.6)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(2.0, 0.5, 2.0)
+	shape.shape = box
+	shape.position.y = 0.25
+	platform.add_child(shape)
+	var visual := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(2.0, 0.5, 2.0)
+	visual.mesh = mesh
+	visual.position.y = 0.25
+	var material := _map_material(Color("#c8a3ff"), true)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(0.78, 0.64, 1.0, 0.68)
+	visual.material_override = material
+	platform.add_child(visual)
+	world.add_child(platform)
+
+
+# --- Locked gate + lever puzzle ---------------------------------------------
+
+func _build_puzzle(level_number: int, route: Array) -> void:
+	var n := route.size()
+	_add_gate(route[n - 2], route[n - 1])
+	for index in _pick_switch_indices(level_number, n):
+		_add_lever(route[index])
+
+
+func _pick_switch_indices(level_number: int, n: int) -> Array[int]:
+	var blocked: Dictionary = _special["all"].duplicate()
+	return _spread(_switch_count(level_number), n, blocked)
+
+
+func _add_gate(from_point: Vector3, to_point: Vector3) -> void:
+	var mid := (from_point + to_point) * 0.5 + Vector3(0, 1.55, 0)
+	var direction := to_point - from_point
+	direction.y = 0.0
+	var yaw := atan2(direction.x, direction.z)
+	var gate := StaticBody3D.new()
+	gate.name = "PuzzleGate"
+	gate.set_script(PUZZLE_GATE_SCRIPT)
+	gate.position = mid
+	gate.rotation.y = yaw
+	var size := Vector3(3.8, 2.1, 0.35)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	gate.add_child(shape)
+	var visual := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	visual.mesh = mesh
+	visual.material_override = _map_material(Color("#ff6b8a"), true)
+	gate.add_child(visual)
+	world.add_child(gate)
+	gates.append(gate)
+
+
+func _add_lever(point: Vector3) -> void:
+	var lever := Node3D.new()
+	lever.name = "PuzzleSwitch"
+	lever.position = point + Vector3(0, 0.55, 0)
+	lever.set_meta("pressed", false)
+
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color("#ff5b72")
+	material.emission_enabled = true
+	material.emission = Color("#ff254a")
+	lever.set_meta("material", material)
+
+	var button := CSGCylinder3D.new()
+	button.name = "SwitchButton"
+	button.radius = 0.48
+	button.height = 0.28
+	button.position.y = 0.16
+	button.material = material
+	lever.add_child(button)
+
+	var post := CSGBox3D.new()
+	post.size = Vector3(0.16, 0.9, 0.16)
+	post.position.y = -0.42
+	var post_material := StandardMaterial3D.new()
+	post_material.albedo_color = Color("#304d72")
+	post.material = post_material
+	lever.add_child(post)
+
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.58
+	torus.outer_radius = 0.68
+	ring.mesh = torus
+	ring.rotation.x = PI / 2.0
+	ring.material_override = _map_material(Color("#ff8fa6"), true)
+	lever.add_child(ring)
+
+	world.add_child(lever)
+	switches.append(lever)
+
+
+func _try_press_switch() -> void:
+	for lever in switches:
+		if lever.get_meta("pressed", false):
+			continue
+		if player.global_position.distance_to(lever.global_position) < 2.6:
+			_press_switch(lever)
+			return
+
+
+func _press_switch(lever: Node3D) -> void:
+	lever.set_meta("pressed", true)
+	var material: StandardMaterial3D = lever.get_meta("material")
+	material.albedo_color = Color("#65f6ad")
+	material.emission = Color("#25ff95")
+	switches_pressed += 1
+	if switches_pressed >= switches.size():
+		_solve_puzzle()
+	else:
+		hud.show_finish_message("Switch %d/%d activated!" % [switches_pressed, switches.size()])
+
+
+func _solve_puzzle() -> void:
+	puzzle_solved = true
+	for gate in gates:
+		gate.open()
+	hud.show_finish_message("Gate open! Reach the flag!")
 
 
 func _add_checkpoint(point: Vector3, checkpoint_index: int) -> void:
@@ -240,6 +509,8 @@ func _on_checkpoint_body_entered(body: Node3D, checkpoint_index: int, respawn_po
 
 func respawn_player() -> void:
 	Engine.time_scale = 1.0
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	player.is_dead = false
 	player.global_position = checkpoint_position
 	player.velocity = Vector3.ZERO
 	player.movement_velocity = Vector3.ZERO
@@ -313,45 +584,40 @@ func _shift_dimension() -> void:
 
 
 func _build_level_identity(level_number: int, route: Array) -> void:
-	match level_number:
-		1:
-			# Cloud Hop: hoops and sweepers turn the spiral into a timing challenge.
-			for index in [2, 5, 8]:
-				_add_map_ring(route[index] + Vector3(0, 1.0, 0), 0.55, Color("#83f5ef"))
-			for index in [4, 7]:
-				_add_spinning_bar(route[index], 1.65, Color("#45d8cf"), 1.35)
-		2:
-			# Switchback Sprint: low bars make the broad S route a jumping course.
-			for index in [2, 5, 8]:
-				_add_jump_hurdle(route, index)
-			for index in [1, 4, 7]:
-				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.65, 0.8, Color("#ff9b4b"))
-		3:
-			# Moonflip Maze: alternate solid walls leave a changing gap to find.
-			for wall_index in range(3):
-				var route_index := 2 + wall_index * 2
-				_add_maze_wall(route, route_index, 1.0 if wall_index % 2 == 0 else -1.0)
-			for index in [3, 7]:
-				_add_map_ring(route[index] + Vector3(0, 1.6, 0), 0.72, Color("#d79bff"))
-		4:
-			# Rising Ruins: broken columns and sweepers frame the steep ascent.
-			for index in [1, 3, 5, 7, 9]:
-				var side := -1.0 if index % 2 == 1 else 1.0
-				var point: Vector3 = route[index]
-				# Ruin stumps frame the route without towering over the player.
-				_add_map_column(point + Vector3(side * 1.45, 0, 0), 0.62 + float(index % 3) * 0.1, 0.34, Color("#d6bd91"))
-			for index in [4, 8]:
-				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.9, 0.85, Color("#ead8ad"))
-			for index in [2, 7]:
-				_add_spinning_bar(route[index], 1.8, Color("#b58854"), -1.1)
-		5:
-			# Sky Crown: golden gates and fast sweepers guard the final ascent.
-			for index in [2, 5, 8]:
-				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.9, 0.85, Color("#ffd667"))
-				_add_map_ring(route[index] + Vector3(0, 1.25, 0), 0.58, Color("#fff0a1"))
-			for index in [4, 7]:
-				_add_spinning_bar(route[index], 2.0, Color("#ffca45"), 1.8)
-			_add_crown_spires(route[route.size() - 1])
+	var n := route.size()
+	var tint := _theme_tint(level_number)
+	var used: Dictionary = _special["all"].duplicate()
+
+	# Hoops are scenic markers; their count also grows with the level.
+	var rings := _spread(_ring_count(level_number), n, used)
+	for index in rings:
+		used[index] = true
+	for index in rings:
+		_add_map_ring(route[index] + Vector3(0, 1.0, 0), 0.55 + 0.02 * float(level_number), tint)
+
+	# Hurdles you must jump, from level 2 onward.
+	var hurdles := _spread(_hurdle_count(level_number), n, used)
+	for index in hurdles:
+		used[index] = true
+	for index in hurdles:
+		_add_jump_hurdle(route, index)
+
+	# Maze walls you must weave through, from level 3 onward.
+	var walls := _spread(_wall_count(level_number), n, used)
+	for index in walls:
+		used[index] = true
+	for index in walls:
+		_add_maze_wall(route, index, 1.0 if index % 2 == 0 else -1.0)
+
+	# Sweepers to dodge, more and faster every level.
+	var sweepers := _spread(_sweeper_count(level_number), n, used)
+	for index in sweepers:
+		used[index] = true
+	for index in sweepers:
+		_add_spinning_bar(route[index], 1.5 + 0.1 * float(level_number), tint, 1.1 + 0.2 * float(level_number))
+
+	if level_number == 5:
+		_add_crown_spires(route[n - 1])
 
 
 func _add_jump_hurdle(route: Array, route_index: int) -> void:
@@ -481,18 +747,33 @@ func _map_material(tint: Color, emissive: bool = false) -> StandardMaterial3D:
 
 
 func _get_level_routes() -> Array:
+	# Each level is deliberately longer than the one before it, so the difficulty
+	# and complexity climb from course to course. Gaps stay within a double jump.
 	return [
-		# Cloud Hop: spiral around and climb toward the summit.
-		[Vector3(0, 0, 0), Vector3(2.3, 0, 0), Vector3(3.7, 0.6, 1.8), Vector3(2.6, 1.2, 3.6), Vector3(0.3, 1.8, 4.2), Vector3(-2.0, 2.4, 3.0), Vector3(-3.6, 3.0, 1.0), Vector3(-2.5, 3.6, -1.0), Vector3(-0.3, 4.2, -2.1), Vector3(2.0, 4.8, -1.2)],
-		# Switchback Sprint: a wide S route that doubles back across the gap.
-		[Vector3(0, 0, 0), Vector3(2.4, 0, 1.8), Vector3(4.8, 0.3, 0), Vector3(7.2, 0.6, -1.8), Vector3(9.6, 0.9, 0), Vector3(7.2, 1.2, 1.8), Vector3(4.8, 1.5, 3.6), Vector3(2.4, 1.8, 1.8), Vector3(0, 2.1, 0), Vector3(-2.4, 2.4, -1.8)],
-		# Moonflip Maze: a tight sequence of turns folds back across its own track.
-		[Vector3(0, 0, 0), Vector3(0, 0, -2.0), Vector3(1.8, 0.4, -3.6), Vector3(3.8, 0.6, -3.6), Vector3(3.8, 0.9, -1.4), Vector3(2.0, 1.1, 0), Vector3(0, 1.4, 0), Vector3(-2.0, 1.7, 0), Vector3(-3.8, 2.0, -1.4), Vector3(-2.0, 2.3, -2.8)],
-		# Rising Ruins: climb in a tight switchback over a deep drop.
-		[Vector3(0, 0, 0), Vector3(2.2, 0.5, 0), Vector3(4.4, 1, 1), Vector3(6.6, 1.5, 2), Vector3(8.8, 2, 1), Vector3(6.6, 2.5, 0), Vector3(4.4, 3, -1), Vector3(2.2, 3.5, -2), Vector3(0, 4, -1), Vector3(-2.2, 4.5, 0), Vector3(-4.4, 5, 1)],
-		# Sky Crown: the longest course, with a sharp zigzag finish.
-		[Vector3(0, 0, 0), Vector3(2.2, 0.4, 0), Vector3(4.4, 0.8, -1.8), Vector3(6.6, 0.4, -3.6), Vector3(8.8, 0, -1.8), Vector3(11, 0.5, 0), Vector3(13.2, 1, 1.8), Vector3(15.4, 1.5, 0), Vector3(17.6, 2, -1.8), Vector3(19.8, 2.5, 0), Vector3(22, 3, 1.8)]
+		# 1 Cloud Hop: 15 platforms, gentle climb.
+		_serpentine_route(3, 5, 2.35, 0.3),
+		# 2 Switchback Sprint: 20 platforms.
+		_serpentine_route(4, 5, 2.4, 0.3),
+		# 3 Moonflip Maze: 25 platforms.
+		_serpentine_route(5, 5, 2.4, 0.3),
+		# 4 Rising Ruins: 30 platforms.
+		_serpentine_route(5, 6, 2.4, 0.3),
+		# 5 Sky Crown: 36 platforms, the longest and hardest course.
+		_serpentine_route(6, 6, 2.4, 0.3),
 	]
+
+
+func _serpentine_route(rows: int, columns: int, step: float, rise: float) -> Array:
+	var route: Array = []
+	var row_gap := 2.4
+	var index := 0
+	for row in range(rows):
+		var z := float(row) * row_gap
+		for column in range(columns):
+			var x_index := column if row % 2 == 0 else columns - 1 - column
+			route.append(Vector3(float(x_index) * step, float(index) * rise, z))
+			index += 1
+	return route
 
 
 func _add_anti_gravity_zone(point: Vector3) -> void:
@@ -522,34 +803,6 @@ func _add_anti_gravity_zone(point: Vector3) -> void:
 	world.add_child(zone)
 
 
-func _build_puzzle_switch() -> void:
-	var routes := _get_level_routes()
-	var route: Array = routes[current_level - 1]
-	var switch_position: Vector3 = route[route.size() - 2] + Vector3(0, 1.0, 0)
-	puzzle_switch = Node3D.new()
-	puzzle_switch.name = "PuzzleSwitch"
-	puzzle_switch.add_to_group("mirror_dimension")
-	puzzle_switch.position = switch_position
-	var button := CSGCylinder3D.new()
-	button.name = "SwitchButton"
-	button.radius = 0.48
-	button.height = 0.28
-	button.position.y = 0.16
-	switch_material = StandardMaterial3D.new()
-	switch_material.albedo_color = Color("#ff5b72")
-	switch_material.emission_enabled = true
-	switch_material.emission = Color("#ff254a")
-	button.material = switch_material
-	puzzle_switch.add_child(button)
-	var post := CSGBox3D.new()
-	post.size = Vector3(0.16, 0.9, 0.16)
-	post.position.y = -0.42
-	post.material = StandardMaterial3D.new()
-	post.material.albedo_color = Color("#304d72")
-	puzzle_switch.add_child(post)
-	world.add_child(puzzle_switch)
-
-
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F1:
 		hud.show_controls_hint()
@@ -562,33 +815,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_tree().change_scene_to_file("res://scenes/home.tscn")
 		return
 	if event.is_action_pressed("interact") and not puzzle_solved:
-		if player.global_position.distance_to(puzzle_switch.global_position) < 2.5:
-			puzzle_solved = true
-			switch_material.albedo_color = Color("#65f6ad")
-			switch_material.emission = Color("#25ff95")
-			hud.show_finish_message("Switch activated! The summit gate is open!")
+		_try_press_switch()
 
 
 func _on_coin_collected(coins: int) -> void:
 	if coins == coin_goal:
-		hud.show_finish_message("All coins collected! Find the switch, then reach the flag!")
+		hud.show_finish_message("All coins collected! Press the switches, then reach the flag!")
 
 
 func _on_finish_body_entered(body: Node3D) -> void:
 	if body != player:
 		return
-	if not puzzle_solved:
-		hud.show_finish_message("Find the glowing switch and press E!")
-		return
-	if player.coins < coin_goal:
-		var remaining: int = coin_goal - player.coins
-		hud.show_finish_message("Find %d more coin%s!" % [remaining, "s" if remaining != 1 else ""])
-		return
+	# Reaching the flag shows the level complete screen.
 	Engine.time_scale = 1.0
 	hud.show_victory(current_level, LEVEL_NAMES.size())
 
 
 func _on_continue_pressed() -> void:
+	_go_to_next_level()
+
+
+func _go_to_next_level() -> void:
 	get_tree().paused = false
 	Engine.time_scale = 1.0
 	var next_level := current_level + 1
@@ -596,3 +843,22 @@ func _on_continue_pressed() -> void:
 		next_level = 1
 	get_tree().set_meta("level_number", next_level)
 	get_tree().reload_current_scene()
+
+
+func _on_player_died() -> void:
+	Engine.time_scale = 1.0
+	hud.show_death()
+
+
+func _on_retry_pressed() -> void:
+	get_tree().paused = false
+	Engine.time_scale = 1.0
+	hud.hide_death()
+	respawn_player()
+
+
+func _go_to_menu() -> void:
+	get_tree().paused = false
+	Engine.time_scale = 1.0
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file("res://scenes/home.tscn")

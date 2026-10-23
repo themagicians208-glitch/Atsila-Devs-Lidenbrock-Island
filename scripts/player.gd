@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 signal coin_collected
+signal died
 
 @export_subgroup("Components")
 @export var view: Node3D
@@ -21,6 +22,8 @@ var previously_floored = false
 var jumps_remaining := 2
 
 var coins = 0
+
+var is_dead := false
 
 @onready var particles_trail = $ParticlesTrail
 @onready var sound_footsteps = $SoundFootsteps
@@ -56,6 +59,9 @@ func _jump_has_mouse_binding() -> bool:
 # Functions
 
 func _physics_process(delta):
+	if is_dead:
+		return
+
 	if Input.is_action_just_pressed("time_freeze") and freeze_cooldown <= 0.0:
 		_activate_time_freeze()
 
@@ -83,14 +89,10 @@ func _physics_process(delta):
 
 	rotation.y = lerp_angle(rotation.y, rotation_direction, delta * 10)
 
-	# Falling/respawning
+	# Falling into the void is fatal
 
 	if position.y < -10:
-		var level := get_parent()
-		if level.has_method("respawn_player"):
-			level.respawn_player()
-		else:
-			get_tree().reload_current_scene()
+		die()
 
 	# Animation for scale (jumping and landing)
 
@@ -198,6 +200,18 @@ func collect_coin():
 	coins += 1
 
 	coin_collected.emit(coins)
+
+
+# Dying
+
+func die() -> void:
+	if is_dead:
+		return
+	is_dead = true
+	velocity = Vector3.ZERO
+	movement_velocity = Vector3.ZERO
+	gravity = 0.0
+	died.emit()
 
 
 func _activate_time_freeze() -> void:

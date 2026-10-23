@@ -15,10 +15,18 @@ var controls_hint: Label
 var objective_hint: Label
 var controls_tween: Tween
 signal continue_pressed
+signal retry_pressed
+signal menu_pressed
+var death_overlay: ColorRect
+var death_heading: Label
+var death_subtitle: Label
+var retry_button: Button
+var menu_button: Button
 
 func _ready() -> void:
 	_build_game_hud()
 	_build_victory_overlay()
+	_build_death_overlay()
 	_update_coin_counter(0)
 
 func set_coin_goal(amount: int) -> void:
@@ -42,6 +50,15 @@ func show_victory(level_number: int, total_levels: int) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	replay_button.grab_focus()
 	get_tree().paused = true
+
+func show_death() -> void:
+	death_overlay.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	retry_button.grab_focus()
+	get_tree().paused = true
+
+func hide_death() -> void:
+	death_overlay.visible = false
 
 func set_level_info(level_number: int, level_name: String) -> void:
 	level_heading.text = "LEVEL %d  •  %s" % [level_number, level_name.to_upper()]
@@ -185,3 +202,92 @@ func _build_victory_overlay() -> void:
 	replay.pressed.connect(func(): continue_pressed.emit())
 	replay_button = replay
 	layout.add_child(replay)
+
+func _build_death_overlay() -> void:
+	death_overlay = ColorRect.new()
+	death_overlay.color = Color(0.09, 0.02, 0.03, 0.82)
+	death_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	death_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	death_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	death_overlay.visible = false
+	add_child(death_overlay)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	death_overlay.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(520, 260)
+	panel.add_theme_stylebox_override("panel", _hud_panel_style(Color("#3a1620"), Color("#ff5b72")))
+	center.add_child(panel)
+
+	var layout := VBoxContainer.new()
+	layout.alignment = BoxContainer.ALIGNMENT_CENTER
+	layout.add_theme_constant_override("separation", 16)
+	panel.add_child(layout)
+
+	death_heading = Label.new()
+	death_heading.text = "YOU FELL"
+	death_heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	death_heading.add_theme_font_override("font", UI_FONT)
+	death_heading.add_theme_font_size_override("font_size", 46)
+	death_heading.add_theme_color_override("font_color", Color("#ff8a9c"))
+	layout.add_child(death_heading)
+
+	death_subtitle = Label.new()
+	death_subtitle.text = "The sky swallowed you whole. Try again?"
+	death_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	death_subtitle.add_theme_font_override("font", UI_FONT)
+	death_subtitle.add_theme_font_size_override("font_size", 19)
+	death_subtitle.add_theme_color_override("font_color", Color("#ffe7ea"))
+	layout.add_child(death_subtitle)
+
+	var button_row := HBoxContainer.new()
+	button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	button_row.add_theme_constant_override("separation", 18)
+	layout.add_child(button_row)
+
+	retry_button = _hud_button("RETRY", Color("#ff5b72"), Color("#2a0810"))
+	retry_button.pressed.connect(func(): retry_pressed.emit())
+	button_row.add_child(retry_button)
+
+	menu_button = _hud_button("MAIN MENU", Color("#315784"), Color.WHITE)
+	menu_button.pressed.connect(func(): menu_pressed.emit())
+	button_row.add_child(menu_button)
+
+func _hud_panel_style(bg: Color, border: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg
+	style.border_color = border
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(18)
+	style.content_margin_left = 36
+	style.content_margin_right = 36
+	style.content_margin_top = 28
+	style.content_margin_bottom = 28
+	return style
+
+func _hud_button(text: String, color: Color, text_color: Color) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(190, 48)
+	button.add_theme_font_override("font", UI_FONT)
+	button.add_theme_font_size_override("font_size", 22)
+	button.add_theme_color_override("font_color", text_color)
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = color
+	normal.set_corner_radius_all(12)
+	normal.content_margin_left = 16
+	normal.content_margin_right = 16
+	normal.content_margin_top = 10
+	normal.content_margin_bottom = 10
+	var hover := normal.duplicate()
+	hover.bg_color = color.lightened(0.14)
+	hover.border_color = Color("#ffe078")
+	hover.set_border_width_all(2)
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", normal)
+	button.add_theme_stylebox_override("focus", hover)
+	return button
