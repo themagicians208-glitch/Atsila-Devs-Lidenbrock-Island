@@ -43,6 +43,8 @@ See [COURSES.md](COURSES.md) for course and mechanic notes.
 
 Each course requires collecting all coins, activating its switch, and touching the finish flag. Shift with **Q** between Material and Mirror dimensions; their platforms and selected hazards differ. Anti-gravity zones appear on selected courses; time freeze slows the whole game briefly and recharges after a cooldown.
 
+Touch the yellow checkpoint beacons to save progress through a course. If you fall, you return to the latest beacon instead of restarting the level.
+
 ## Build and export
 
 Open the project in Godot and use **Project → Export** to create a build for your platform. Godot's matching export templates must be installed first. The Godot editor can be downloaded for free; no additional game-specific tools are required.

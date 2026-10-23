@@ -22,6 +22,8 @@ var puzzle_solved := false
 var puzzle_switch: Node3D
 var switch_material: StandardMaterial3D
 var mirror_dimension := false
+var checkpoint_position := Vector3.ZERO
+var active_checkpoint := 0
 
 
 func _ready() -> void:
@@ -159,11 +161,89 @@ func _build_level(level_number: int) -> void:
 	world.add_child(flag)
 	player.position = route[0] + Vector3(0, 0.55, 0)
 	player.velocity = Vector3.ZERO
+	checkpoint_position = player.position
+	active_checkpoint = 0
+	for checkpoint_index in _get_checkpoint_indices(level_number, route.size()):
+		_add_checkpoint(route[checkpoint_index], checkpoint_index)
 	finish.position = goal + Vector3(0, 1.0, 0)
 	if level_number in [1, 2, 4, 5]:
 		_add_anti_gravity_zone(route[route.size() / 2])
 	_build_level_identity(level_number, route)
 	_apply_dimension_visibility()
+
+
+func _get_checkpoint_indices(level_number: int, route_size: int) -> Array[int]:
+	var second_checkpoint := route_size - 3
+	if level_number == 3:
+		# The maze folds close to its start near the end, so place the second marker earlier.
+		second_checkpoint = route_size - 5
+	return [2, second_checkpoint]
+
+
+func _add_checkpoint(point: Vector3, checkpoint_index: int) -> void:
+	var checkpoint := Node3D.new()
+	checkpoint.name = "Checkpoint_%02d" % checkpoint_index
+	checkpoint.add_to_group("course_checkpoints")
+	checkpoint.set_meta("checkpoint_index", checkpoint_index)
+	checkpoint.position = point
+	world.add_child(checkpoint)
+
+	var area := Area3D.new()
+	area.name = "CheckpointTrigger"
+	area.position.y = 0.8
+	area.collision_layer = 0
+	area.collision_mask = 1
+	var trigger_shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 1.05
+	trigger_shape.shape = sphere
+	area.add_child(trigger_shape)
+	checkpoint.add_child(area)
+
+	var pole := MeshInstance3D.new()
+	var pole_mesh := CylinderMesh.new()
+	pole_mesh.top_radius = 0.045
+	pole_mesh.bottom_radius = 0.07
+	pole_mesh.height = 1.3
+	pole.mesh = pole_mesh
+	pole.position.y = 0.72
+	pole.material_override = _map_material(Color("#18202b"))
+	checkpoint.add_child(pole)
+
+	var flag := MeshInstance3D.new()
+	flag.name = "CheckpointFlag"
+	var flag_mesh := BoxMesh.new()
+	flag_mesh.size = Vector3(0.62, 0.34, 0.055)
+	flag.mesh = flag_mesh
+	flag.position = Vector3(0.34, 1.16, 0)
+	var flag_material := _map_material(Color("#bda334"), true)
+	flag.material_override = flag_material
+	checkpoint.add_child(flag)
+	area.body_entered.connect(_on_checkpoint_body_entered.bind(checkpoint_index, point + Vector3(0, 0.55, 0), flag_material))
+
+
+func _on_checkpoint_body_entered(body: Node3D, checkpoint_index: int, respawn_point: Vector3, flag_material: StandardMaterial3D) -> void:
+	if body != player or checkpoint_index <= active_checkpoint:
+		return
+	active_checkpoint = checkpoint_index
+	checkpoint_position = respawn_point
+	flag_material.albedo_color = Color("#ffe25a")
+	flag_material.emission = Color("#ffc928")
+	hud.show_finish_message("Checkpoint reached! Fall back here if you miss a jump.")
+
+
+func respawn_player() -> void:
+	Engine.time_scale = 1.0
+	player.global_position = checkpoint_position
+	player.velocity = Vector3.ZERO
+	player.movement_velocity = Vector3.ZERO
+	player.gravity = 0.0
+	player.gravity_scale = 1.0
+	player.jump_single = true
+	player.jump_double = true
+	player.previously_floored = false
+	player.model.scale = Vector3.ONE
+	hud.show_finish_message("Back at checkpoint %d" % active_checkpoint if active_checkpoint > 0 else "Back at the start")
 
 
 func _get_mirror_platform_point(route: Array, index: int) -> Vector3:

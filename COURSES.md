@@ -18,6 +18,10 @@ The five routes are generated in `scripts/main.gd`. Each course places its platf
 
 Falling platforms collapse when the player lands on them in the Material dimension. Rotating sweepers block the Mirror path and must be timed or jumped. Maze walls block the Material path, requiring players to follow the alternating openings or shift dimensions; sprint hurdles can be jumped over. Anti-gravity zones reverse the player's gravity while they are inside. Press **F** to slow the whole game briefly; the ability recharges after a cooldown.
 
+Each course has two checkpoint beacons along its route. Touch a beacon to save your respawn point; falling after that returns you to the latest beacon without restarting the course.
+
+The glowing upright hoops in Cloud Hop, Moonflip Maze, and Sky Crown are decorative route markers. They have no collision and do not block or boost the player.
+
 ## Level progression
 
 The home screen allows direct access to any course. Completing a course offers the next one; completing Sky Crown cycles back to Cloud Hop for another run.

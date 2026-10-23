@@ -49,15 +49,15 @@ func _update_coin_counter(coins: int) -> void:
 
 func _build_game_hud() -> void:
 	var objective := Label.new()
-	objective.text = "SHIFT DIMENSIONS  •  COLLECT COINS  •  HIT THE SWITCH  •  REACH THE FLAG"
+	objective.text = "SHIFT DIMENSIONS  •  COLLECT COINS  •  TOUCH CHECKPOINTS  •  HIT THE SWITCH  •  REACH THE FLAG"
 	objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	objective.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	objective.offset_left = -500
+	objective.offset_left = -600
 	objective.offset_top = 24
-	objective.offset_right = 500
+	objective.offset_right = 600
 	objective.offset_bottom = 66
 	objective.add_theme_font_override("font", UI_FONT)
-	objective.add_theme_font_size_override("font_size", 23)
+	objective.add_theme_font_size_override("font_size", 20)
 	objective.add_theme_color_override("font_color", Color("#fff6d5"))
 	objective.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.65))
 	objective.add_theme_constant_override("shadow_offset_x", 2)
