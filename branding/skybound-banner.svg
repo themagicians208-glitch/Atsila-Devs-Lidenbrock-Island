@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="360" viewBox="0 0 1440 360">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38bddb"/>
+      <stop offset=".55" stop-color="#5276c8"/>
+      <stop offset="1" stop-color="#282e72"/>
+    </linearGradient>
+    <linearGradient id="platform" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b1ff93"/>
+      <stop offset="1" stop-color="#50c88f"/>
+    </linearGradient>
+    <filter id="shadow" x="-.2" y="-.2" width="1.4" height="1.5">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7"/>
+      <feOffset dy="8"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".3"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1440" height="360" rx="28" fill="url(#sky)"/>
+  <circle cx="1240" cy="76" r="38" fill="#ffe17b" opacity=".95"/>
+  <g fill="#fff" opacity=".72">
+    <path d="M105 90c0-16 13-29 29-29 8-20 36-24 49-6 19-6 38 9 38 29H105z"/>
+    <path d="M1104 160c0-11 9-20 20-20 6-14 25-17 34-4 13-4 27 6 27 20h-81z"/>
+    <path d="M908 66c0-9 7-16 16-16 5-11 21-14 28-3 11-4 22 5 22 16h-66z"/>
+  </g>
+  <g fill="#fff1a3" opacity=".9">
+    <path d="m326 74 5 13 13 5-13 5-5 13-5-13-13-5 13-5z"/>
+    <path d="m1004 80 4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>
+    <path d="m1330 208 4 11 11 4-11 4-4 11-4-11-11-4 11-4z"/>
+  </g>
+  <g filter="url(#shadow)">
+    <path d="m874 264 170-74 170 74-170 72z" fill="#7651d2"/>
+    <path d="m874 250 170-74 170 74-170 74z" fill="url(#platform)" stroke="#d1ffa4" stroke-width="7" stroke-linejoin="round"/>
+    <path d="m918 250 126-55 127 55-127 55z" fill="#b6ff91" opacity=".65"/>
+    <ellipse cx="1045" cy="225" rx="19" ry="26" fill="#ffdc58" stroke="#fff4bb" stroke-width="5"/>
+    <path d="M1019 202c-4-22 5-42 26-42s30 20 26 42l-6 30h-40z" fill="#fff" stroke="#5268ae" stroke-width="6"/>
+    <rect x="1024" y="201" width="42" height="29" rx="13" fill="#ffe36a"/>
+    <circle cx="1037" cy="213" r="3" fill="#26375f"/><circle cx="1053" cy="213" r="3" fill="#26375f"/>
+    <path d="M1038 222q7 7 14 0" fill="none" stroke="#26375f" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g filter="url(#shadow)" transform="translate(730 202)">
+    <path d="m-100 0 58-25 58 25-58 25z" fill="#ffd35f" stroke="#fff0a3" stroke-width="5"/>
+  </g>
+  <text x="92" y="186" fill="#fff1a3" font-family="Trebuchet MS,Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="5">A FIVE-COURSE SKY ISLAND ADVENTURE</text>
+  <text x="86" y="252" fill="#fff" font-family="Trebuchet MS,Arial,sans-serif" font-size="62" font-weight="900" letter-spacing="1">SKYBOUND</text>
+  <text x="89" y="310" fill="#fff" font-family="Trebuchet MS,Arial,sans-serif" font-size="48" font-weight="900" letter-spacing="5">SHOWDOWN</text>
+  <rect x="90" y="324" width="330" height="7" rx="4" fill="#ffe16a"/>
+</svg>

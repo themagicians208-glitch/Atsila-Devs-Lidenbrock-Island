@@ -1,18 +1,22 @@
-# Godot 4+ specific ignores
+# Godot-generated editor and import cache
 .godot/
-
-# Godot-specific ignores
 .import/
+
+# Export output and build products
+build/
+bin/
 export.cfg
 export_presets.cfg
 
-# Imported translations (automatically generated from CSV files)
-*.translation
-
-# Mono-specific ignores
+# Godot Mono/.NET output
 .mono/
 data_*/
 mono_crash.*.json
 
-# Kenney ignores
-build/
+# Imported translations
+*.translation
+
+# OS/editor temporary files
+.DS_Store
+Thumbs.db
+*.tmp
