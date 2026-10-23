@@ -10,7 +10,7 @@ extends Node3D
 
 @export_group("Rotation")
 @export var rotation_speed = 120
-@export var mouse_sensitivity = 0.12
+@export var mouse_sensitivity = 0.22
 
 var camera_rotation:Vector3
 var zoom = 10
@@ -54,7 +54,7 @@ func handle_input(delta):
 	zoom = clamp(zoom, zoom_maximum, zoom_minimum)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		camera_rotation.y -= event.relative.x * mouse_sensitivity
 		camera_rotation.x -= event.relative.y * mouse_sensitivity

@@ -46,6 +46,7 @@ func _ready() -> void:
 	finish.body_entered.connect(_on_finish_body_entered)
 	_build_puzzle_switch()
 	_apply_dimension_visibility()
+	hud.show_controls_hint()
 
 	if RenderingServer.get_current_rendering_method() == "gl_compatibility":
 		$Sun.light_energy = 0.24
@@ -546,6 +547,8 @@ func _build_puzzle_switch() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F1:
+		hud.show_controls_hint()
 	if event.is_action_pressed("shift_dimension") and not get_tree().paused:
 		_shift_dimension()
 		return
