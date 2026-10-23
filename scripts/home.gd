@@ -11,6 +11,7 @@ var default_button: Button
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Audio.play_music("res://sounds/pixelland.mp3")
 	_build_home()
 	_build_popup()
 	default_button.grab_focus()

@@ -4,11 +4,17 @@ extends Node
 
 var num_players = 12
 var bus = "master"
+var music_player: AudioStreamPlayer
 
 var available = []  # The available players.
 var queue = []  # The queue of sounds to play.
 
 func _ready():
+
+	music_player = AudioStreamPlayer.new()
+	add_child(music_player)
+	music_player.volume_db = -14
+	music_player.bus = bus
 
 	for i in num_players:
 		var p = AudioStreamPlayer.new()
@@ -24,6 +30,14 @@ func _ready():
 func _on_stream_finished(stream): available.append(stream)
 
 func play(sound_path): queue.append(sound_path)
+
+func play_music(sound_path: String) -> void:
+	if music_player.playing and music_player.stream and music_player.stream.resource_path == sound_path:
+		return
+	music_player.stream = load(sound_path)
+	if music_player.stream is AudioStreamMP3 or music_player.stream is AudioStreamOggVorbis:
+		music_player.stream.loop = true
+	music_player.play()
 
 func _process(_delta):
 

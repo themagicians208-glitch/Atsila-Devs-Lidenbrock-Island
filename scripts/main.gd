@@ -29,6 +29,7 @@ var active_checkpoint := 0
 func _ready() -> void:
 	Engine.time_scale = 1.0
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Audio.play_music("res://sounds/itty_bitty.mp3")
 	$Sun.light_color = Color("#fff2d6")
 	_ensure_key_action("interact", KEY_E, JOY_BUTTON_X)
 	_ensure_key_action("time_freeze", KEY_F, JOY_BUTTON_Y)
