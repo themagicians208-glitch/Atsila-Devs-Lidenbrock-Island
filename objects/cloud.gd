@@ -18,11 +18,12 @@ func _ready() -> void:
 	_add_cloud_platform()
 
 func _add_cloud_platform() -> void:
-	var platform := StaticBody3D.new()
+	var platform := AnimatableBody3D.new()
 	platform.name = "CloudPlatform"
+	platform.sync_to_physics = true
 	var platform_shape := CollisionShape3D.new()
 	var platform_box := BoxShape3D.new()
-	platform_box.size = Vector3(1.9, 0.38, 1.45)
+	platform_box.size = Vector3(1.7, 0.38, 1.3)
 	platform_shape.shape = platform_box
 	platform_shape.position.y = -0.14
 	platform.add_child(platform_shape)
@@ -34,7 +35,7 @@ func _add_cloud_platform() -> void:
 	bounce_zone.collision_mask = 1
 	var bounce_shape := CollisionShape3D.new()
 	var bounce_box := BoxShape3D.new()
-	bounce_box.size = Vector3(1.85, 0.55, 1.4)
+	bounce_box.size = Vector3(1.65, 0.55, 1.25)
 	bounce_shape.shape = bounce_box
 	bounce_shape.position.y = 0.24
 	bounce_zone.add_child(bounce_shape)
@@ -48,6 +49,7 @@ func _add_puff(offset: Vector3, radius: float, tint: Color) -> void:
 	sphere.height = radius * 2.0
 	puff.mesh = sphere
 	puff.position = offset
+	puff.scale = Vector3(0.78, 0.58, 0.7)
 	puff.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var material := StandardMaterial3D.new()
 	material.albedo_color = tint

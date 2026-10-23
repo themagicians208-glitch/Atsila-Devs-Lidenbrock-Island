@@ -128,6 +128,8 @@ func _build_level(level_number: int) -> void:
 		var platform: Node3D = platform_scene.instantiate()
 		platform.position = point
 		platform.rotation.y = float((i * 23 + level_number * 17) % 50) * PI / 180.0
+		if level_number == 1:
+			platform.scale.y = 0.62
 		platform.add_to_group("material_dimension")
 		world.add_child(platform)
 
@@ -136,6 +138,8 @@ func _build_level(level_number: int) -> void:
 		mirror_platform.name = "MirrorPlatform_%02d" % i
 		mirror_platform.position = _get_mirror_platform_point(route, i)
 		mirror_platform.rotation.y = -platform.rotation.y
+		if level_number == 1:
+			mirror_platform.scale.y = 0.62
 		mirror_platform.add_to_group("mirror_dimension")
 		world.add_child(mirror_platform)
 		_add_phase_glow(mirror_platform)
@@ -153,7 +157,7 @@ func _build_level(level_number: int) -> void:
 
 		if i % 3 == 1:
 			var cloud := preload("res://objects/cloud.tscn").instantiate()
-			cloud.position = point + Vector3(0, 0.9, 0.9)
+			cloud.position = point + Vector3(0, 1.2, 2.0)
 			world.add_child(cloud)
 
 	var goal: Vector3 = route[route.size() - 1]
@@ -240,8 +244,7 @@ func respawn_player() -> void:
 	player.movement_velocity = Vector3.ZERO
 	player.gravity = 0.0
 	player.gravity_scale = 1.0
-	player.jump_single = true
-	player.jump_double = true
+	player.jumps_remaining = 2
 	player.previously_floored = false
 	player.model.scale = Vector3.ONE
 	hud.show_finish_message("Back at checkpoint %d" % active_checkpoint if active_checkpoint > 0 else "Back at the start")
@@ -313,7 +316,7 @@ func _build_level_identity(level_number: int, route: Array) -> void:
 		1:
 			# Cloud Hop: hoops and sweepers turn the spiral into a timing challenge.
 			for index in [2, 5, 8]:
-				_add_map_ring(route[index] + Vector3(0, 1.8, 0), 0.92, Color("#83f5ef"))
+				_add_map_ring(route[index] + Vector3(0, 1.0, 0), 0.55, Color("#83f5ef"))
 			for index in [4, 7]:
 				_add_spinning_bar(route[index], 1.65, Color("#45d8cf"), 1.35)
 		2:

@@ -18,8 +18,7 @@ var freeze_cooldown := 0.0
 
 var previously_floored = false
 
-var jump_single = true
-var jump_double = true
+var jumps_remaining := 2
 
 var coins = 0
 
@@ -62,8 +61,8 @@ func _physics_process(delta):
 
 	# Handle functions
 
-	handle_controls(delta)
 	handle_gravity(delta)
+	handle_controls(delta)
 
 	handle_effects(delta)
 
@@ -159,20 +158,19 @@ func handle_controls(delta):
 
 	if Input.is_action_just_pressed("jump"):
 
-		if jump_single or jump_double:
+		if jumps_remaining > 0:
 			jump()
 
 # Handle gravity
 
 func handle_gravity(delta):
 
-	gravity += 25 * gravity_scale * delta
-	gravity = clampf(gravity, -5.0, 30.0)
-
-	if gravity > 0 and is_on_floor():
-
-		jump_single = true
+	if is_on_floor() and gravity >= 0.0:
 		gravity = 0
+		jumps_remaining = 2
+	else:
+		gravity += 25 * gravity_scale * delta
+		gravity = clampf(gravity, -5.0, 30.0)
 
 # Jumping
 
@@ -184,17 +182,12 @@ func jump():
 
 	model.scale = Vector3(0.5, 1.5, 0.5)
 
-	if jump_single:
-		jump_single = false;
-		jump_double = true;
-	else:
-		jump_double = false;
+	jumps_remaining = maxi(0, jumps_remaining - 1)
 
 
 func cloud_bounce() -> void:
 	gravity = -9.5
-	jump_single = true
-	jump_double = true
+	jumps_remaining = 2
 	model.scale = Vector3(0.75, 1.3, 0.75)
 	Audio.play("res://sounds/jump.ogg")
 
