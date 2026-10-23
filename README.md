@@ -1,5 +1,5 @@
-# Atsila-Dev
-# LIDEN BROCK
+Atsila-Dev
+LIDEN BROCK
 ### *The island doesn't want you to leave.*
 
 **A co-op survival horror experience set on a forgotten island where humanity's experiments refuse to stay buried.**
