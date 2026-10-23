@@ -26,7 +26,32 @@ var coins = 0
 @onready var particles_trail = $ParticlesTrail
 @onready var sound_footsteps = $SoundFootsteps
 @onready var model = $Character
-@onready var animation = $Character/AnimationPlayer
+
+
+func _ready() -> void:
+	var has_controller_jump := false
+	for event in InputMap.action_get_events("jump").duplicate():
+		if event is InputEventJoypadButton and event.button_index == JOY_BUTTON_A:
+			has_controller_jump = true
+		elif event is InputEventJoypadButton and event.button_index == JOY_BUTTON_B:
+			InputMap.action_erase_event("jump", event)
+	if not has_controller_jump:
+		var jump_button := InputEventJoypadButton.new()
+		jump_button.button_index = JOY_BUTTON_A
+		jump_button.device = -1
+		InputMap.action_add_event("jump", jump_button)
+	if not _jump_has_mouse_binding():
+		var mouse_jump := InputEventMouseButton.new()
+		mouse_jump.button_index = MOUSE_BUTTON_LEFT
+		mouse_jump.device = -1
+		InputMap.action_add_event("jump", mouse_jump)
+
+
+func _jump_has_mouse_binding() -> bool:
+	for event in InputMap.action_get_events("jump"):
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			return true
+	return false
 
 # Functions
 
@@ -86,8 +111,7 @@ func handle_effects(delta):
 		var horizontal_velocity = Vector2(velocity.x, velocity.z)
 		var speed_factor = horizontal_velocity.length() / movement_speed / delta
 		if speed_factor > 0.05:
-			if animation.current_animation != "walk":
-				animation.play("walk", 0.1)
+			model.set_motion("walk", speed_factor)
 
 			if speed_factor > 0.3:
 				sound_footsteps.stream_paused = false
@@ -96,16 +120,10 @@ func handle_effects(delta):
 			if speed_factor > 0.75:
 				particles_trail.emitting = true
 
-		elif animation.current_animation != "idle":
-			animation.play("idle", 0.1)
-			
-		if animation.current_animation == "walk":
-			animation.speed_scale = speed_factor
 		else:
-			animation.speed_scale = 1.0
-			
-	elif animation.current_animation != "jump":
-		animation.play("jump", 0.1)
+			model.set_motion("idle")
+	else:
+		model.set_motion("jump")
 
 # Handle movement input
 

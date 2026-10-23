@@ -36,6 +36,8 @@ func show_victory(level_number: int, total_levels: int) -> void:
 	victory_subtitle.text = "You conquered %s!" % level_heading.text.get_slice("•", 1).strip_edges().capitalize()
 	replay_button.text = "PLAY AGAIN" if level_number == total_levels else "NEXT LEVEL"
 	victory_overlay.visible = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	replay_button.grab_focus()
 	get_tree().paused = true
 
 func set_level_info(level_number: int, level_name: String) -> void:
@@ -47,12 +49,12 @@ func _update_coin_counter(coins: int) -> void:
 
 func _build_game_hud() -> void:
 	var objective := Label.new()
-	objective.text = "COLLECT COINS  •  HIT THE SWITCH  •  REACH THE FLAG"
+	objective.text = "SHIFT DIMENSIONS  •  COLLECT COINS  •  HIT THE SWITCH  •  REACH THE FLAG"
 	objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	objective.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	objective.offset_left = -350
+	objective.offset_left = -500
 	objective.offset_top = 24
-	objective.offset_right = 350
+	objective.offset_right = 500
 	objective.offset_bottom = 66
 	objective.add_theme_font_override("font", UI_FONT)
 	objective.add_theme_font_size_override("font_size", 23)
@@ -75,15 +77,15 @@ func _build_game_hud() -> void:
 	add_child(level_heading)
 
 	var controls := Label.new()
-	controls.text = "WASD MOVE   SPACE JUMP   F FREEZE   E SWITCH   ARROWS CAMERA   +/- ZOOM   ESC MENU"
+	controls.text = "WASD / STICK MOVE   MOUSE / RIGHT STICK LOOK   CLICK / SPACE / A JUMP\nRIGHT CLICK / Q / LB SHIFT   F / Y FREEZE   E / X INTERACT   ESC / B MENU"
 	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	controls.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	controls.offset_left = -520
-	controls.offset_top = -54
+	controls.offset_top = -70
 	controls.offset_right = 520
-	controls.offset_bottom = -20
+	controls.offset_bottom = -14
 	controls.add_theme_font_override("font", UI_FONT)
-	controls.add_theme_font_size_override("font_size", 17)
+	controls.add_theme_font_size_override("font_size", 15)
 	controls.add_theme_color_override("font_color", Color("#fff6d5"))
 	controls.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	add_child(controls)

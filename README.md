@@ -4,7 +4,7 @@
   <img src="branding/skybound-banner.svg" alt="Skybound Showdown — five sky-island obstacle courses" width="100%">
 </p>
 
-**Skybound Showdown** is a single-player 3D platform adventure made with Godot 4.7. Run, jump, and double-jump across five sky-island obstacle courses. Collect every coin, activate the switch, and reach the finish flag.
+**Skybound Showdown** is a single-player 3D dimension-shifting platform adventure made with Godot 4.7. Run and double-jump across five sky-island obstacle courses, shifting between Material and Mirror dimensions to reveal alternate platforms and routes. Collect every coin, activate the switch, and reach the finish flag.
 
 ## Play
 
@@ -19,27 +19,29 @@ The project starts on the home screen, where you can start the adventure, select
 
 | # | Course | Route and challenge |
 | --- | --- | --- |
-| 1 | Cloud Hop | Spiral climb across floating cloud platforms |
-| 2 | Switchback Sprint | A wide S-shaped route with falling platforms |
-| 3 | Moonflip Maze | Looping route with a mix of stable and crumbling platforms |
-| 4 | Rising Ruins | Tight switchbacks that climb above the clouds |
-| 5 | Sky Crown | The longest course, ending in a high zigzag ascent |
+| 1 | Cloud Hop | Spiral climb through floating sky hoops |
+| 2 | Switchback Sprint | A broad S-shaped sprint with jump hurdles |
+| 3 | Moonflip Maze | Tight turns through alternating wall openings |
+| 4 | Rising Ruins | A steep climb framed by broken stone columns |
+| 5 | Sky Crown | A long zigzag through golden gates to a crown of spires |
 
 See [COURSES.md](COURSES.md) for course and mechanic notes.
 
 ## Controls
 
-| Action | Keyboard |
-| --- | --- |
-| Move | W, A, S, D |
-| Jump / double jump | Space |
-| Freeze time briefly | F |
-| Activate a nearby switch | E |
-| Rotate camera | Arrow keys |
-| Zoom camera | + / - |
-| Return to home screen | Esc |
+| Action | Keyboard / mouse | Controller |
+| --- | --- | --- |
+| Move | W, A, S, D | Left stick |
+| Look around | Mouse movement | Right stick |
+| Jump / double jump | Left click / Space | A |
+| Shift dimension | Right click / Q | Left bumper (LB) |
+| Freeze time briefly | F | Y |
+| Activate a nearby switch | E | X |
+| Zoom camera | Mouse wheel | Triggers |
+| Navigate menus / select | Mouse click | D-pad or left stick / A |
+| Return / back | Esc | B |
 
-Each course requires collecting all coins, activating its switch, and touching the finish flag. Anti-gravity zones appear on selected courses; time freeze slows the whole game briefly and recharges after a cooldown.
+Each course requires collecting all coins, activating its switch, and touching the finish flag. Shift with **Q** between Material and Mirror dimensions; their platforms and selected hazards differ. Anti-gravity zones appear on selected courses; time freeze slows the whole game briefly and recharges after a cooldown.
 
 ## Build and export
 

@@ -6,10 +6,14 @@ const LEVEL_NAMES := ["Cloud Hop", "Switchback Sprint", "Moonflip Maze", "Rising
 var popup: ColorRect
 var popup_title: Label
 var popup_body: VBoxContainer
+var back_button: Button
+var default_button: Button
 
 func _ready() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_build_home()
 	_build_popup()
+	default_button.grab_focus()
 
 func _build_home() -> void:
 	var background := TextureRect.new()
@@ -45,7 +49,7 @@ func _build_home() -> void:
 	content.add_theme_constant_override("separation", 14)
 	columns.add_child(content)
 
-	var tag := _label("A FIVE-LEVEL SKY ISLAND ADVENTURE", 18, Color("#a6f4ff"))
+	var tag := _label("A FIVE-LEVEL DIMENSION-HOPPING ADVENTURE", 18, Color("#a6f4ff"))
 	content.add_child(tag)
 
 	var title := _label("SKYBOUND\nSHOWDOWN", 68, Color("#fff1a3"))
@@ -54,7 +58,7 @@ func _build_home() -> void:
 	title.add_theme_constant_override("shadow_offset_y", 5)
 	content.add_child(title)
 
-	var subtitle := _label("Leap, dodge, solve, and soar.\nCan you reach the crown?", 23, Color.WHITE)
+	var subtitle := _label("Shift dimensions. Reveal the route.\nCan you reach the crown?", 23, Color.WHITE)
 	subtitle.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.45))
 	content.add_child(subtitle)
 
@@ -63,6 +67,7 @@ func _build_home() -> void:
 	content.add_child(spacer)
 
 	var play := _button("START ADVENTURE", Color("#ffd451"), Color("#493600"))
+	default_button = play
 	play.pressed.connect(func(): _start_level(1))
 	content.add_child(play)
 
@@ -89,16 +94,17 @@ func _build_home() -> void:
 	feature_card.add_child(feature_list)
 	feature_list.add_child(_label("THE SKY IS YOURS", 28, Color("#ffe078")))
 	feature_list.add_child(_label("5 unique obstacle courses", 20, Color.WHITE))
+	feature_list.add_child(_label("Shift between two dimensions", 20, Color.WHITE))
 	feature_list.add_child(_label("Freeze time to beat hazards", 20, Color.WHITE))
 	feature_list.add_child(_label("Float through anti-gravity", 20, Color.WHITE))
 	feature_list.add_child(_label("Find switches to open the way", 20, Color.WHITE))
 	feature_list.add_child(_label("Collect every coin. Reach the flag.", 17, Color("#b9d9f7")))
 
-	var footer := _label("WASD MOVE     SPACE JUMP     F FREEZE     E SWITCH", 15, Color("#eff8ff"))
+	var footer := _label("WASD / LEFT STICK MOVE     MOUSE / RIGHT STICK LOOK     CLICK / SPACE / A JUMP", 15, Color("#eff8ff"))
 	footer.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	footer.offset_left = -360
+	footer.offset_left = -500
 	footer.offset_top = -34
-	footer.offset_right = 360
+	footer.offset_right = 500
 	footer.offset_bottom = -8
 	footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(footer)
@@ -130,7 +136,8 @@ func _build_popup() -> void:
 	popup_body.add_theme_constant_override("separation", 10)
 	layout.add_child(popup_body)
 	var back := _button("BACK", Color("#315784"), Color.WHITE)
-	back.pressed.connect(func(): popup.visible = false)
+	back_button = back
+	back.pressed.connect(_close_popup)
 	layout.add_child(back)
 
 func _show_level_select() -> void:
@@ -142,15 +149,28 @@ func _show_level_select() -> void:
 		level_button.pressed.connect(_start_level.bind(level_number))
 		popup_body.add_child(level_button)
 	popup.visible = true
+	if popup_body.get_child_count() > 0:
+		(popup_body.get_child(0) as Control).grab_focus()
 
 func _show_controls() -> void:
 	popup_title.text = "HOW TO PLAY"
 	_clear_popup_body()
-	for line in ["W A S D   Move around the course", "SPACE   Jump and double jump", "F   Slow time for a moment", "E   Activate a nearby switch", "ARROWS   Rotate the camera", "+ / -   Zoom the camera", "Collect every coin, activate the switch, then reach the flag."]:
+	for line in ["WASD / LEFT STICK   Move", "MOUSE / RIGHT STICK   Look around", "LEFT CLICK / SPACE / A   Jump", "RIGHT CLICK / Q / LEFT BUMPER   Shift dimensions", "F / Y   Slow time", "E / X   Activate the nearby switch", "MOUSE WHEEL / TRIGGERS   Zoom", "CLICK / A   Select     ESC / B   Back"]:
 		var row := _label(line, 19, Color.WHITE)
 		row.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		popup_body.add_child(row)
 	popup.visible = true
+	back_button.grab_focus()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if popup.visible and event.is_action_pressed("ui_cancel"):
+		_close_popup()
+
+
+func _close_popup() -> void:
+	popup.visible = false
+	default_button.grab_focus()
 
 func _clear_popup_body() -> void:
 	for child in popup_body.get_children():
