@@ -1,0 +1,28 @@
+[gd_resource type="Material" load_steps=3 format=3]
+
+[sub_resource type="Shader" id="shader"]
+path = "res://assets/shaders/terrain.gdshader"
+
+[sub_resource type="Texture2D" id="height_noise"]
+width = 256
+height = 256
+format = 0
+
+[sub_resource type="Texture2D" id="detail_noise"]
+width = 256
+height = 256
+format = 0
+
+[resource]
+shader = SubResource("shader")
+shader_parameters/height_noise = SubResource("height_noise")
+shader_parameters/detail_noise = SubResource("detail_noise")
+shader_parameters/sand_color = Color(0.72, 0.65, 0.52, 1.0)
+shader_parameters/wet_sand_color = Color(0.4, 0.35, 0.28, 1.0)
+shader_parameters/rock_color = Color(0.25, 0.23, 0.2, 1.0)
+shader_parameters/grass_color = Color(0.18, 0.3, 0.12, 1.0)
+shader_parameters/sand_rock_blend = 0.35
+shader_parameters/grass_threshold = 0.65
+shader_parameters/detail_scale = 12.0
+shader_parameters/macro_scale = 0.015
+shader_parameters/time_speed = 0.08

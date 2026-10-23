@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=3 uid://drk6q9x9q8x7a]
+
+[ext_resource type="Script" path="res://scripts/gravity_shift_component.gd" id="1_5f9r8"]
+[ext_resource type="Script" path="res://scripts/gravity_affected.gd" id="2_6g7h9"]
+[ext_resource type="PackedScene" path="res://scenes/gravity_cube.tscn" id="3_8j0k2"]
+[ext_resource type="Script" path="res://scripts/player_controller.gd" id="4_9n2o4"]
+
+[node name="DemoPlayer" type="CharacterBody3D"]
+script = ExtResource("4_9n2o4")
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = BoxShape3D {
+	size = Vector3(1, 2, 1)
+}
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = BoxMesh {
+	size = Vector3(1, 2, 1)
+}
+mesh/surface_material_cache/0 = StandardMaterial3D {
+	albedo_color = Color(0.2, 0.6, 1.0, 1)
+	roughness = 0.5
+}
+
+[node name="GravityShiftComponent" type="Node" parent="." script=ExtResource("1_5f9r8")]
+input_action = "gravity_shift"
+gravity_magnitude = 20.0
+cooldown_time = 0.4
+shift_duration = 0.25
+require_grounded = false
+check_ceiling_clearance = true
+ceiling_clearance = 1.2
+enable_color_tint = true
+normal_color = Color(0.2, 0.6, 1.0, 1)
+reversed_color = Color(1.0, 0.4, 0.8, 1)
+tint_duration = 0.15
+enable_particles = true
+particle_amount = 30
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 1.5, 5)
+rotation_degrees = Vector3(0, 0, 0)
+
+[node name="GravityCube" type="Node3D" parent="." instance=ExtResource("3_8j0k2")]
+position = Vector3(3, 1, 0)

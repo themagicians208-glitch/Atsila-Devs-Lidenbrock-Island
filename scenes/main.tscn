@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://d0qmueqnqqvb7"]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/level_01_broken_shore.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/victory_screen.tscn" id="7"]
+[ext_resource type="Script" uid="uid://cqygfjbslrm83" path="res://scenes/main.gd" id="8"]
+[ext_resource type="Script" uid="uid://cpvsjrsvm8ico" path="res://scripts/core/playability_test.gd" id="9"]
+
+[node name="Main" type="Node3D" unique_id=389073591]
+script = ExtResource("8")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=779218785]
+
+[node name="LevelInstance" parent="." unique_id=1955489995 instance=ExtResource("3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19527721, 0.7455853, -0.35745335)
+
+[node name="Player" parent="." unique_id=688953030 instance=ExtResource("4")]
+
+[node name="HUD" parent="." unique_id=514466017 instance=ExtResource("5")]
+
+[node name="PauseMenu" parent="." unique_id=936303898 instance=ExtResource("6")]
+
+[node name="VictoryScreen" parent="." unique_id=1756585427 instance=ExtResource("7")]
+
+[node name="PlayabilityTest" type="Node" parent="." unique_id=2047489116]
+script = ExtResource("9")

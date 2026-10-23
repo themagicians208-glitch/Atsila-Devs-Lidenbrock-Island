@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/interfaces/gravity_shiftable.gd" id="1"]
+[ext_resource type="Script" path="res://scenes/mechanics/gravity_zone.gd" id="2"]
+
+[sub_resource type="BoxShape3D" id="zone_shape"]
+size = Vector3(20, 10, 20)
+
+[sub_resource type="BoxMesh" id="zone_mesh"]
+size = Vector3(20, 10, 20)
+
+[sub_resource type="StandardMaterial3D" id="zone_material"]
+albedo_color = Color(0.2, 0.6, 1, 0.1)
+transparency = 1
+roughness = 0.5
+
+[node name="GravityZone" type="Area3D"]
+script = ExtResource("2")
+collision_layer = 1
+collision_mask = 1
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+shape = SubResource("zone_shape")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+
+[node name="VisualIndicator" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("zone_mesh")
+material_override = SubResource("zone_material")

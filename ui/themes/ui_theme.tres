@@ -1,0 +1,195 @@
+[gd_resource type="Theme" load_steps=10 format=3 uid="uid://ui_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.05, 0.02, 0.08, 0.85)
+border_width_bottom = 2
+border_width_left = 2
+border_width_right = 2
+border_width_top = 2
+border_color = Color(0.4, 0.1, 0.6, 0.9)
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+shadow_enabled = true
+shadow_color = Color(0.6, 0.15, 0.8, 0.3)
+shadow_offset = Vector2(0, 4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.08, 0.03, 0.12, 0.9)
+border_width_bottom = 1
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_color = Color(0.5, 0.2, 0.7, 0.8)
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
+bg_color = Color(0.15, 0.05, 0.2, 0.7)
+border_width_bottom = 1
+border_width_left = 1
+border_width_right = 1
+border_width_top = 1
+border_color = Color(0.3, 0.1, 0.4, 0.6)
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4"]
+bg_color = Color(0.02, 0.01, 0.04, 0.95)
+border_width_bottom = 2
+border_width_left = 2
+border_width_right = 2
+border_width_top = 2
+border_color = Color(0.7, 0.2, 0.9, 0.9)
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+shadow_enabled = true
+shadow_color = Color(0.8, 0.3, 1.0, 0.4)
+shadow_offset = Vector2(0, 6)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5"]
+bg_color = Color(0.6, 0.1, 0.2, 0.9)
+border_width_bottom = 2
+border_width_left = 2
+border_width_right = 2
+border_width_top = 2
+border_color = Color(1.0, 0.3, 0.4, 0.9)
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+shadow_enabled = true
+shadow_color = Color(1.0, 0.2, 0.3, 0.4)
+shadow_offset = Vector2(0, 4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6"]
+bg_color = Color(0.1, 0.4, 0.2, 0.9)
+border_width_bottom = 2
+border_width_left = 2
+border_width_right = 2
+border_width_top = 2
+border_color = Color(0.2, 0.8, 0.4, 0.9)
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+shadow_enabled = true
+shadow_color = Color(0.2, 1.0, 0.5, 0.4)
+shadow_offset = Vector2(0, 4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7"]
+bg_color = Color(0.0, 0.0, 0.0, 0.0)
+border_width_bottom = 0
+border_width_left = 0
+border_width_right = 0
+border_width_top = 0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8"]
+bg_color = Color(0.3, 0.1, 0.45, 0.85)
+border_width_bottom = 2
+border_width_left = 2
+border_width_right = 2
+border_width_top = 2
+border_color = Color(0.6, 0.2, 0.8, 0.9)
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_9"]
+bg_color = Color(0.0, 0.0, 0.0, 0.0)
+border_width_bottom = 0
+border_width_left = 0
+border_width_right = 0
+border_width_top = 0
+
+[resource]
+default_base_color = Color(0.9, 0.7, 1.0, 1.0)
+default_font_size = 24
+default_font_color = Color(0.95, 0.85, 1.0, 1.0)
+default_font_outline_size = 2
+default_font_outline_color = Color(0.1, 0.02, 0.15, 1.0)
+
+[resource]
+type_data = {
+"Button": {
+"font_size": 28,
+"font_color": Color(0.95, 0.85, 1.0, 1.0),
+"font_outline_size": 2,
+"font_outline_color": Color(0.1, 0.02, 0.15, 1.0),
+"styles": {
+"normal": SubResource("StyleBoxFlat_2"),
+"hover": SubResource("StyleBoxFlat_8"),
+"pressed": SubResource("StyleBoxFlat_1"),
+"disabled": SubResource("StyleBoxFlat_3"),
+"focus": SubResource("StyleBoxFlat_1")
+}
+},
+"Label": {
+"font_size": 22,
+"font_color": Color(0.9, 0.75, 1.0, 1.0),
+"font_outline_size": 2,
+"font_outline_color": Color(0.1, 0.02, 0.15, 1.0)
+},
+"Panel": {
+"styles": {
+"panel": SubResource("StyleBoxFlat_1")
+}
+},
+"PanelContainer": {
+"styles": {
+"panel": SubResource("StyleBoxFlat_1")
+}
+},
+"VBoxContainer": {},
+"HBoxContainer": {},
+"MarginContainer": {},
+"CenterContainer": {},
+"RichTextLabel": {
+"font_size": 22,
+"font_color": Color(0.9, 0.75, 1.0, 1.0),
+"font_outline_size": 2,
+"font_outline_color": Color(0.1, 0.02, 0.15, 1.0)
+},
+"LineEdit": {
+"font_size": 22,
+"font_color": Color(0.95, 0.85, 1.0, 1.0),
+"font_outline_size": 1,
+"font_outline_color": Color(0.1, 0.02, 0.15, 1.0),
+"styles": {
+"normal": SubResource("StyleBoxFlat_3"),
+"focus": SubResource("StyleBoxFlat_2")
+}
+},
+"ProgressBar": {
+"styles": {
+"background": SubResource("StyleBoxFlat_3"),
+"fill": SubResource("StyleBoxFlat_8")
+}
+},
+"TextureProgressBar": {
+"styles": {
+"background": SubResource("StyleBoxFlat_3"),
+"fill": SubResource("StyleBoxFlat_8")
+}
+},
+"TextureButton": {
+"styles": {
+"normal": SubResource("StyleBoxFlat_7"),
+"hover": SubResource("StyleBoxFlat_7"),
+"pressed": SubResource("StyleBoxFlat_7"),
+"disabled": SubResource("StyleBoxFlat_7")
+}
+}
+}

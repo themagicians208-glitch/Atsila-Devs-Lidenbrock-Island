@@ -1,0 +1,30 @@
+[gd_resource type="Material" load_steps=3 format=3]
+
+[sub_resource type="Shader" id="shader"]
+path = "res://assets/shaders/water.gdshader"
+
+[sub_resource type="Texture2D" id="normal_map"]
+width = 256
+height = 256
+format = 0
+
+[sub_resource type="Texture2D" id="noise_tex"]
+width = 256
+height = 256
+format = 0
+
+[resource]
+shader = SubResource("shader")
+shader_parameters/normal_map = SubResource("normal_map")
+shader_parameters/noise_texture = SubResource("noise_tex")
+shader_parameters/deep_color = Color(0.02, 0.06, 0.12, 0.8)
+shader_parameters/shallow_color = Color(0.08, 0.2, 0.3, 0.65)
+shader_parameters/foam_color = Color(0.35, 0.32, 0.28, 0.55)
+shader_parameters/wave_speed = 0.7
+shader_parameters/wave_scale = 0.5
+shader_parameters/foam_threshold = 0.7
+shader_parameters/distortion_strength = 0.06
+shader_parameters/fresnel_power = 4.0
+shader_parameters/transparency = 0.75
+transparency = 1
+render_priority = 0

@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://test_main"]
+
+[ext_resource type="PackedScene" path="res://ui/scenes/ui_demo.tscn" id="1"]
+
+[node name="TestMain" type="Node"]
+[node name="UIDemo" type="Node" parent="."]
+instance = ExtResource("1")
