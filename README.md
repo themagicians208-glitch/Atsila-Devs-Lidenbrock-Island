@@ -45,9 +45,9 @@ Each character brings a distinct role to the group's struggle for survival.
 
 | Character | Role | Specialization |
 |---|---|---|
-| **Alexandria** | The Leader | Decision-making and group coordination |
-| **Samuel** | The Engineer | Technical repairs and transmitter construction |
-| **Kevin** | The Scout | Exploration and scavenging |
+| **Alexandria** | The Engineer | Technical repairs and transmitter construction At S.T.A.R.K Industries |
+| **Samuel** | The Leader | Decision-making and group coordination |
+| **Kevin** | The Lab Scientist At OSCROP | 
 | **Suzie** | The Medic | Medical support and survival |
 
 These roles establish the foundation for character-driven gameplay and potential cooperative mechanics as development progresses.
