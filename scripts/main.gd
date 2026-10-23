@@ -153,7 +153,7 @@ func _build_level(level_number: int) -> void:
 
 		if i % 3 == 1:
 			var cloud := preload("res://objects/cloud.tscn").instantiate()
-			cloud.position = point + Vector3(0, 3.5, 1.5)
+			cloud.position = point + Vector3(0, 0.9, 0.9)
 			world.add_child(cloud)
 
 	var goal: Vector3 = route[route.size() - 1]
@@ -321,7 +321,7 @@ func _build_level_identity(level_number: int, route: Array) -> void:
 			for index in [2, 5, 8]:
 				_add_jump_hurdle(route, index)
 			for index in [1, 4, 7]:
-				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.65, 1.8, Color("#ff9b4b"))
+				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.65, 0.8, Color("#ff9b4b"))
 		3:
 			# Moonflip Maze: alternate solid walls leave a changing gap to find.
 			for wall_index in range(3):
@@ -335,16 +335,16 @@ func _build_level_identity(level_number: int, route: Array) -> void:
 				var side := -1.0 if index % 2 == 1 else 1.0
 				var point: Vector3 = route[index]
 				# Ruin stumps frame the route without towering over the player.
-				_add_map_column(point + Vector3(side * 1.45, 0, 0), 1.15 + float(index % 3) * 0.22, 0.34, Color("#d6bd91"))
+				_add_map_column(point + Vector3(side * 1.45, 0, 0), 0.62 + float(index % 3) * 0.1, 0.34, Color("#d6bd91"))
 			for index in [4, 8]:
-				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.9, 2.3, Color("#ead8ad"))
+				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.9, 0.85, Color("#ead8ad"))
 			for index in [2, 7]:
 				_add_spinning_bar(route[index], 1.8, Color("#b58854"), -1.1)
 		5:
 			# Sky Crown: golden gates and fast sweepers guard the final ascent.
 			for index in [2, 5, 8]:
-				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.9, 2.0, Color("#ffd667"))
-				_add_map_ring(route[index] + Vector3(0, 2.15, 0), 0.82, Color("#fff0a1"))
+				_add_ruin_arch(route[index] + Vector3(0, 0.5, 0), 1.9, 0.85, Color("#ffd667"))
+				_add_map_ring(route[index] + Vector3(0, 1.25, 0), 0.58, Color("#fff0a1"))
 			for index in [4, 7]:
 				_add_spinning_bar(route[index], 2.0, Color("#ffca45"), 1.8)
 			_add_crown_spires(route[route.size() - 1])
@@ -364,9 +364,9 @@ func _add_maze_wall(route: Array, route_index: int, side: float) -> void:
 	direction = direction.normalized()
 	var across := Vector3(direction.z, 0.0, -direction.x)
 	var rotation_y := atan2(direction.x, direction.z)
-	var point: Vector3 = route[route_index] + across * side * 0.42 + Vector3(0, 1.175, 0)
+	var point: Vector3 = route[route_index] + across * side * 0.42 + Vector3(0, 0.95, 0)
 	# The wall spans most of each island, so players must follow the alternating openings.
-	_add_solid_map_box(point, Vector3(1.05, 1.35, 0.22), Color("#7654b8"), rotation_y)
+	_add_solid_map_box(point, Vector3(1.05, 0.8, 0.22), Color("#7654b8"), rotation_y)
 
 
 func _add_solid_map_box(point: Vector3, size: Vector3, tint: Color, rotation_y: float = 0.0) -> void:
@@ -449,9 +449,9 @@ func _add_crown_spires(point: Vector3) -> void:
 		var cone := CylinderMesh.new()
 		cone.bottom_radius = 0.3
 		cone.top_radius = 0.0
-		cone.height = 2.1
+		cone.height = 0.85
 		spire.mesh = cone
-		spire.position = point + offset + Vector3(0, 1.05, 0)
+		spire.position = point + offset + Vector3(0, 0.425, 0)
 		spire.material_override = gold
 		world.add_child(spire)
 

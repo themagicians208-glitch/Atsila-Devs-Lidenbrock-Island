@@ -190,6 +190,14 @@ func jump():
 	else:
 		jump_double = false;
 
+
+func cloud_bounce() -> void:
+	gravity = -9.5
+	jump_single = true
+	jump_double = true
+	model.scale = Vector3(0.75, 1.3, 0.75)
+	Audio.play("res://sounds/jump.ogg")
+
 # Collecting coins
 
 func collect_coin():
