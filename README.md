@@ -1,33 +1,45 @@
-# Skybound Showdown
+# ☁️ Skybound Showdown
 
 <p align="center">
   <img src="branding/skybound-banner.svg" alt="Skybound Showdown — five sky-island obstacle courses" width="100%">
 </p>
 
-**Skybound Showdown** is a single-player 3D dimension-shifting platform adventure made with Godot 4.7. Run and double-jump across five sky-island obstacle courses, shifting between Material and Mirror dimensions to reveal alternate platforms and routes. The game features a variety of environmental hazards including bounce pads, fan tunnels, rolling barrels, and slippery/sticky zones. Collect every coin, activate the switch, and reach the finish flag.
+<p align="center">
+  <strong>One sky. Five courses. Every jump counts.</strong><br>
+  A single-player 3D platform adventure built with Godot 4.7.
+</p>
 
-## Play
+## 🌤️ Ready to take the leap?
 
-1. Install [Godot 4.7 or later](https://godotengine.org/download/).
-2. Clone or download this repository.
-3. Open the root `project.godot` file in Godot.
-4. Press **F6** to run the home screen, or **F5** to run the project.
+Race across floating islands, chain your jumps, and discover routes hidden between two dimensions. **Skybound Showdown** challenges you to explore five sky-high courses, collect every coin, activate the course switch, and reach the finish flag.
 
-The project starts on the home screen, where you can start the adventure, select any course, or view the controls.
+Sounds easy? The sky has other plans.
 
-## Courses
+## ✨ What’s up in the clouds?
 
-| # | Course | Route and challenge |
+- 🪙 **Collect every coin** — leave no shiny treasure behind.
+- 🌀 **Shift dimensions** — switch between Material and Mirror to reveal different platforms and routes.
+- 🏃 **Master your movement** — run, jump, and double-jump your way through tricky layouts.
+- 🌪️ **Watch your step** — face hazards such as bounce pads, fan tunnels, rolling barrels, and slippery or sticky zones.
+- ⏱️ **Bend the pace** — freeze time briefly when you need a moment to plan.
+- 🚩 **Reach the finish** — activate the switch and make it to the flag to complete each course.
+- 💛 **Keep your progress** — touch yellow checkpoint beacons so a fall sends you back to your latest checkpoint.
+
+## 🏝️ Choose your course
+
+| # | Course | The challenge |
 | --- | --- | --- |
-| 1 | Cloud Hop | Spiral climb through floating sky hoops |
-| 2 | Switchback Sprint | A broad S-shaped sprint with jump hurdles |
-| 3 | Moonflip Maze | Tight turns through alternating wall openings |
-| 4 | Rising Ruins | A steep climb framed by broken stone columns |
-| 5 | Sky Crown | A long zigzag through golden gates to a crown of spires |
+| 1 | **Cloud Hop** | Spiral climb through floating sky hoops |
+| 2 | **Switchback Sprint** | A broad S-shaped sprint with jump hurdles |
+| 3 | **Moonflip Maze** | Tight turns through alternating wall openings |
+| 4 | **Rising Ruins** | A steep climb framed by broken stone columns |
+| 5 | **Sky Crown** | A long zigzag through golden gates to a crown of spires |
 
-See [COURSES.md](COURSES.md) for course and mechanic notes.
+Every course has its own route to master. Can you collect every coin and reach every finish flag?
 
-## Controls
+See [COURSES.md](COURSES.md) for more course and mechanic notes.
+
+## 🎮 Controls
 
 | Action | Keyboard / mouse | Controller |
 | --- | --- | --- |
@@ -41,14 +53,33 @@ See [COURSES.md](COURSES.md) for course and mechanic notes.
 | Navigate menus / select | Mouse click | D-pad or left stick / A |
 | Return / back | Esc | B |
 
-Each course requires collecting all coins, activating its switch, and touching the finish flag. Shift with **Q** between Material and Mirror dimensions; their platforms and selected hazards differ. Anti-gravity zones appear on selected courses; time freeze slows the whole game briefly and recharges after a cooldown.
+**Quick tip:** Use **Q** to switch between Material and Mirror dimensions. Their platforms and selected hazards differ, so the route that works in one dimension may not work in the other.
 
-Touch the yellow checkpoint beacons to save progress through a course. If you fall, you return to the latest beacon instead of restarting the level.
+## 🚀 Run the game
 
-## Build and export
+1. Install [Godot 4.7 or later](https://godotengine.org/download/).
+2. Clone or download this repository.
+3. Open the root `project.godot` file in Godot.
+4. Press **F5** to run the project, or **F6** to run the home screen.
 
-Open the project in Godot and use **Project → Export** to create a build for your platform. Godot's matching export templates must be installed first. The Godot editor can be downloaded for free; no additional game-specific tools are required.
+From the home screen, you can start the adventure, select a course, or review the controls.
 
-## Credits and licenses
+## 📦 Build and export
 
-The game builds on Kenney's Starter Kit 3D Platformer. See [LICENSE.md](LICENSE.md) for the starter project's MIT license. Included models, sprites, and sound effects retain their original asset credits and licenses; the Lilita font license is in [fonts/license.txt](fonts/license.txt).
+Ready to take your adventure beyond the editor?
+
+1. Open the project in Godot.
+2. Go to **Project → Export**.
+3. Choose your target platform and export the build.
+
+Install the matching Godot export templates first. The Godot editor is free to download; no additional game-specific tools are required.
+
+## 🙌 Credits and licenses
+
+Skybound Showdown builds on **Kenney's Starter Kit 3D Platformer**. See [LICENSE.md](LICENSE.md) for the starter project's MIT license. Included models, sprites, and sound effects retain their original asset credits and licenses; the Lilita font license is in [fonts/license.txt](fonts/license.txt).
+
+---
+
+<p align="center">
+  <em>Find your footing. Shift your world. Own the sky.</em>
+</p>
