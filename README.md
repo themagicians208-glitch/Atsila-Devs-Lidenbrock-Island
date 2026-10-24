@@ -1,17 +1,17 @@
 # ☁️ Skybound Showdown
 
 <p align="center">
-  <img src="branding/skybound-banner.svg" alt="Skybound Showdown — five sky-island obstacle courses" width="100%">
+  <img src="branding/skybound-banner.svg" alt="Skybound Showdown — six sky-island obstacle courses" width="100%">
 </p>
 
 <p align="center">
-  <strong>One sky. Five courses. Every jump counts.</strong><br>
+  <strong>One sky. Six courses. Every jump counts.</strong><br>
   A single-player 3D platform adventure built with Godot 4.7.
 </p>
 
 ## 🌤️ Ready to take the leap?
 
-Race across floating islands, chain your jumps, and discover routes hidden between two dimensions. **Skybound Showdown** challenges you to explore five sky-high courses, collect every coin, activate the course switch, and reach the finish flag.
+Race across floating islands, chain your jumps, and discover routes hidden between two dimensions. **Skybound Showdown** challenges you to conquer six sky-high courses, collect every coin, solve each course's switch puzzle, and reach the finish flag.
 
 Sounds easy? The sky has other plans.
 
@@ -20,24 +20,26 @@ Sounds easy? The sky has other plans.
 - 🪙 **Collect every coin** — leave no shiny treasure behind.
 - 🌀 **Shift dimensions** — switch between Material and Mirror to reveal different platforms and routes.
 - 🏃 **Master your movement** — run, jump, and double-jump your way through tricky layouts.
-- 🌪️ **Watch your step** — face hazards such as bounce pads, fan tunnels, rolling barrels, and slippery or sticky zones.
+- 🌪️ **Watch your step** — dodge spinning sweepers, falling platforms, hurdles, and maze walls.
+- 🎢 **Survive Gimmick Gauntlet** — balance on see-saws, cross rotating logs, dodge rolling barrels, slide across slick ramps, and ride bounce pads and fan tunnels.
 - ⏱️ **Bend the pace** — freeze time briefly when you need a moment to plan.
-- 🚩 **Reach the finish** — activate the switch and make it to the flag to complete each course.
+- 🚩 **Reach the finish** — solve the course's switch puzzle and make it to the flag.
 - 💛 **Keep your progress** — touch yellow checkpoint beacons so a fall sends you back to your latest checkpoint.
 
 ## 🏝️ Choose your course
 
 | # | Course | The challenge |
 | --- | --- | --- |
-| 1 | **Cloud Hop** | Spiral climb through floating sky hoops |
-| 2 | **Switchback Sprint** | A broad S-shaped sprint with jump hurdles |
-| 3 | **Moonflip Maze** | Tight turns through alternating wall openings |
-| 4 | **Rising Ruins** | A steep climb framed by broken stone columns |
-| 5 | **Sky Crown** | A long zigzag through golden gates to a crown of spires |
+| 1 | **Cloud Hop** | A gentle spiral-like climb through floating sky hoops |
+| 2 | **Switchback Sprint** | A wider route with jump hurdles and moving platforms |
+| 3 | **Moonflip Maze** | Tight turns, wall openings, and timed platforms |
+| 4 | **Rising Ruins** | A steeper climb with broken-column styling and tougher obstacles |
+| 5 | **Sky Crown** | The longest of the original routes, with golden gates and a crown of spires |
+| 6 | **Gimmick Gauntlet** | A 42-platform challenge packed with see-saws, rotating logs, slippery and sticky zones, bounce pads, fan tunnels, a slide, and rolling barrels |
 
-Every course has its own route to master. Can you collect every coin and reach every finish flag?
+Each course adds its own mix of routes and hazards. Can you collect every coin, solve every switch puzzle, and reach all six finish flags?
 
-See [COURSES.md](COURSES.md) for more course and mechanic notes.
+See [COURSES.md](COURSES.md) for course-by-course details and mechanics.
 
 ## 🎮 Controls
 
