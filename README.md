@@ -101,3 +101,4 @@ Skybound Showdown builds on **Kenney's Starter Kit 3D Platformer**. See [LICENSE
 <p align="center">
   <strong>Find your footing. Shift your world. Own the sky.</strong>
 </p>
+Built with passion and precision.
