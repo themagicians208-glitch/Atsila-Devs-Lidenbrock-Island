@@ -1,7 +1,7 @@
 extends Control
 
 const UI_FONT = preload("res://fonts/lilita_one_regular.ttf")
-const LEVEL_NAMES := ["Cloud Hop", "Switchback Sprint", "Moonflip Maze", "Rising Ruins", "Sky Crown"]
+const LEVEL_NAMES := ["Cloud Hop", "Switchback Sprint", "Moonflip Maze", "Rising Ruins", "Sky Crown", "Gimmick Gauntlet"]
 
 var popup: ColorRect
 var popup_title: Label
@@ -50,7 +50,7 @@ func _build_home() -> void:
 	content.add_theme_constant_override("separation", 14)
 	columns.add_child(content)
 
-	var tag := _label("A FIVE-LEVEL DIMENSION-HOPPING ADVENTURE", 18, Color("#a6f4ff"))
+	var tag := _label("A SIX-LEVEL DIMENSION-HOPPING ADVENTURE", 18, Color("#a6f4ff"))
 	content.add_child(tag)
 
 	var title := _label("SKYBOUND\nSHOWDOWN", 68, Color("#fff1a3"))
@@ -80,6 +80,10 @@ func _build_home() -> void:
 	controls.pressed.connect(_show_controls)
 	content.add_child(controls)
 
+	var settings := _button("SETTINGS", Color("#315784"), Color.WHITE)
+	settings.pressed.connect(_show_settings)
+	content.add_child(settings)
+
 	var quit := _button("QUIT GAME", Color("#263e64"), Color("#d6e6ff"))
 	quit.pressed.connect(func(): get_tree().quit())
 	content.add_child(quit)
@@ -94,12 +98,12 @@ func _build_home() -> void:
 	feature_list.add_theme_constant_override("separation", 17)
 	feature_card.add_child(feature_list)
 	feature_list.add_child(_label("THE SKY IS YOURS", 28, Color("#ffe078")))
-	feature_list.add_child(_label("5 unique obstacle courses", 20, Color.WHITE))
+	feature_list.add_child(_label("6 unique obstacle courses", 20, Color.WHITE))
 	feature_list.add_child(_label("Shift between two dimensions", 20, Color.WHITE))
 	feature_list.add_child(_label("Freeze time to beat hazards", 20, Color.WHITE))
 	feature_list.add_child(_label("Float through anti-gravity", 20, Color.WHITE))
 	feature_list.add_child(_label("Find switches to open the way", 20, Color.WHITE))
-	feature_list.add_child(_label("Collect every coin. Reach the flag.", 17, Color("#b9d9f7")))
+	feature_list.add_child(_label("Ice, see-saws, barrels, fans & more", 17, Color("#c7f0b9")))
 
 	var footer := _label("WASD / LEFT STICK MOVE     MOUSE / RIGHT STICK LOOK     CLICK / SPACE / A JUMP", 15, Color("#eff8ff"))
 	footer.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
@@ -164,6 +168,65 @@ func _show_controls() -> void:
 	back_button.grab_focus()
 
 
+func _show_settings() -> void:
+	var settings := get_node_or_null("/root/Settings")
+	if settings == null:
+		return
+	popup_title.text = "SETTINGS"
+	_clear_popup_body()
+	popup_body.add_child(_slider_row(
+		"MOUSE SENSITIVITY", 0.05, 0.6, 0.01, float(settings.mouse_sensitivity),
+		func(value: float) -> String: return "%.2f" % value,
+		func(value: float) -> void: settings.set_mouse_sensitivity(value)))
+	popup_body.add_child(_slider_row(
+		"MASTER VOLUME", 0.0, 1.0, 0.01, float(settings.master_volume),
+		func(value: float) -> String: return "%d%%" % roundi(value * 100.0),
+		func(value: float) -> void: settings.set_master_volume(value)))
+	popup_body.add_child(_graphics_row(settings))
+	popup.visible = true
+	back_button.grab_focus()
+
+
+func _slider_row(caption: String, min_value: float, max_value: float, step: float, value: float, formatter: Callable, on_change: Callable) -> VBoxContainer:
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	var label := _label("%s   %s" % [caption, formatter.call(value)], 18, Color.WHITE)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row.add_child(label)
+	var slider := HSlider.new()
+	slider.min_value = min_value
+	slider.max_value = max_value
+	slider.step = step
+	slider.value = value
+	slider.custom_minimum_size = Vector2(440, 26)
+	slider.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	slider.value_changed.connect(func(new_value: float) -> void:
+		label.text = "%s   %s" % [caption, formatter.call(new_value)]
+		on_change.call(new_value))
+	row.add_child(slider)
+	return row
+
+
+func _graphics_row(settings: Node) -> VBoxContainer:
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	var label := _label("GRAPHICS QUALITY", 18, Color.WHITE)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	row.add_child(label)
+	var options := OptionButton.new()
+	options.custom_minimum_size = Vector2(440, 38)
+	options.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	options.add_theme_font_override("font", UI_FONT)
+	options.add_theme_font_size_override("font_size", 18)
+	options.add_item("LOW", 0)
+	options.add_item("MEDIUM", 1)
+	options.add_item("HIGH", 2)
+	options.select(int(settings.graphics_quality))
+	options.item_selected.connect(func(index: int) -> void: settings.set_graphics_quality(index))
+	row.add_child(options)
+	return row
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if popup.visible and event.is_action_pressed("ui_cancel"):
 		_close_popup()
@@ -184,11 +247,11 @@ func _start_level(level_number: int) -> void:
 	get_tree().set_meta("level_number", level_number)
 	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
-func _label(text: String, size: int, color: Color) -> Label:
+func _label(text: String, font_size: int, color: Color) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_override("font", UI_FONT)
-	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	return label
 

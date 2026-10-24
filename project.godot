@@ -27,6 +27,7 @@ config/icon="res://branding/skybound-icon.svg"
 [autoload]
 
 Audio="*res://scripts/audio.gd"
+Settings="*res://scripts/settings.gd"
 
 [display]
 

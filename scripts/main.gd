@@ -11,8 +11,15 @@ const SPINNING_HAZARD_SCRIPT := preload("res://scripts/spinning_hazard.gd")
 const MOVING_PLATFORM_SCRIPT := preload("res://objects/moving_platform.gd")
 const PHASE_PLATFORM_SCRIPT := preload("res://objects/phase_platform.gd")
 const PUZZLE_GATE_SCRIPT := preload("res://objects/puzzle_gate.gd")
+const SEE_SAW_SCRIPT := preload("res://scripts/see_saw.gd")
+const ROTATING_LOG_SCRIPT := preload("res://scripts/rotating_log.gd")
+const ROLLING_BARREL_SCRIPT := preload("res://scripts/rolling_barrel.gd")
+const SLIPPERY_SCRIPT := preload("res://scripts/slippery_zone.gd")
+const STICKY_SCRIPT := preload("res://scripts/sticky_zone.gd")
+const FAN_SCRIPT := preload("res://scripts/fan_tunnel.gd")
+const BOUNCE_SCRIPT := preload("res://scripts/bounce_pad.gd")
 
-const LEVEL_NAMES := ["Cloud Hop", "Switchback Sprint", "Moonflip Maze", "Rising Ruins", "Sky Crown"]
+const LEVEL_NAMES := ["Cloud Hop", "Switchback Sprint", "Moonflip Maze", "Rising Ruins", "Sky Crown", "Gimmick Gauntlet"]
 
 @onready var player: CharacterBody3D = $Player
 @onready var hud: Control = $HUD
@@ -147,6 +154,7 @@ func _build_level(level_number: int) -> void:
 		@warning_ignore("integer_division")
 		_add_anti_gravity_zone(route[route.size() / 2])
 	_build_level_identity(level_number, route)
+	_build_gimmicks(level_number, route)
 	_build_puzzle(level_number, route)
 	_apply_dimension_visibility()
 
@@ -164,11 +172,11 @@ func _get_checkpoint_indices(level_number: int, route_size: int) -> Array[int]:
 # platforms and more switches. The special indices are spread evenly along the
 # route so no two features collide.
 
-var _special: Dictionary = {"moving": [], "phase": [], "falling": [], "all": {}}
+var _special: Dictionary = {"moving": [], "phase": [], "falling": [], "see_saw": [], "log": [], "all": {}}
 
 
 func _build_specials(level_number: int, n: int) -> void:
-	_special = {"moving": [], "phase": [], "falling": [], "all": {0: true, n - 1: true}}
+	_special = {"moving": [], "phase": [], "falling": [], "see_saw": [], "log": [], "all": {0: true, n - 1: true}}
 	var moving := _spread(_moving_count(level_number), n, _special["all"])
 	_special["moving"] = moving
 	for i in moving:
@@ -180,6 +188,14 @@ func _build_specials(level_number: int, n: int) -> void:
 	var falling := _spread(_falling_count(level_number), n, _special["all"])
 	_special["falling"] = falling
 	for i in falling:
+		_special["all"][i] = true
+	var see_saw := _spread(_see_saw_count(level_number), n, _special["all"])
+	_special["see_saw"] = see_saw
+	for i in see_saw:
+		_special["all"][i] = true
+	var log_indices := _spread(_log_count(level_number), n, _special["all"])
+	_special["log"] = log_indices
+	for i in log_indices:
 		_special["all"][i] = true
 
 
@@ -204,35 +220,44 @@ func _spread(count: int, n: int, blocked: Dictionary) -> Array[int]:
 
 
 func _moving_count(level_number: int) -> int:
-	return [0, 2, 3, 4, 5][level_number - 1]
+	return [0, 2, 3, 4, 5, 2][level_number - 1]
 
 
 func _phase_count(level_number: int) -> int:
-	return [0, 0, 2, 3, 4][level_number - 1]
+	return [0, 0, 2, 3, 4, 2][level_number - 1]
 
 
 func _falling_count(level_number: int) -> int:
-	return [2, 3, 4, 5, 5][level_number - 1]
+	return [2, 3, 4, 5, 5, 3][level_number - 1]
+
+
+func _see_saw_count(level_number: int) -> int:
+	return [0, 0, 0, 0, 0, 3][level_number - 1]
+
+
+func _log_count(level_number: int) -> int:
+	return [0, 0, 0, 0, 0, 2][level_number - 1]
 
 
 func _ring_count(level_number: int) -> int:
-	return [3, 3, 4, 4, 5][level_number - 1]
+	return [3, 3, 4, 4, 5, 3][level_number - 1]
 
 
 func _hurdle_count(level_number: int) -> int:
-	return [0, 1, 2, 3, 4][level_number - 1]
+	return [0, 1, 2, 3, 4, 2][level_number - 1]
 
 
 func _wall_count(level_number: int) -> int:
-	return [0, 0, 1, 2, 3][level_number - 1]
+	return [0, 0, 1, 2, 3, 1][level_number - 1]
 
 
 func _sweeper_count(level_number: int) -> int:
-	return [2, 3, 4, 5, 6][level_number - 1]
+	return [2, 3, 4, 5, 6, 3][level_number - 1]
 
 
-func _switch_count(level_number: int) -> int:
-	return [1, 2, 2, 3, 3][level_number - 1]
+func _switch_count(_level_number: int) -> int:
+	# Every course uses the twin-button puzzle: press both far-apart buttons.
+	return 2
 
 
 func _theme_tint(level_number: int) -> Color:
@@ -241,7 +266,8 @@ func _theme_tint(level_number: int) -> Color:
 		2: return Color("#ff9b4b")
 		3: return Color("#d79bff")
 		4: return Color("#d6bd91")
-	return Color("#ffd667")
+		5: return Color("#ffd667")
+	return Color("#9be86a")
 
 
 func _add_main_platform(level_number: int, route: Array, i: int, point: Vector3) -> void:
@@ -250,6 +276,12 @@ func _add_main_platform(level_number: int, route: Array, i: int, point: Vector3)
 		return
 	if i in _special["phase"]:
 		_add_phase_platform(point)
+		return
+	if i in _special["see_saw"]:
+		_add_see_saw(route, i, point)
+		return
+	if i in _special["log"]:
+		_add_log(route, i, point)
 		return
 	var platform_scene := _platform_scene_for(level_number, i)
 	var platform: Node3D = platform_scene.instantiate()
@@ -346,18 +378,284 @@ func _add_phase_platform(point: Vector3) -> void:
 	world.add_child(platform)
 
 
+# --- Level 6 gimmicks --------------------------------------------------------
+
+func _path_yaw(route: Array, i: int) -> float:
+	var direction: Vector3
+	if i <= 0:
+		direction = route[1] - route[0]
+	elif i >= route.size() - 1:
+		direction = route[i] - route[i - 1]
+	else:
+		direction = route[i + 1] - route[i - 1]
+	direction.y = 0.0
+	return atan2(direction.x, direction.z)
+
+
+func _add_see_saw(route: Array, i: int, point: Vector3) -> void:
+	var see_saw := Node3D.new()
+	see_saw.name = "SeeSaw"
+	see_saw.position = point + Vector3(0, 0.55, 0)
+	see_saw.rotation.y = _path_yaw(route, i)
+	see_saw.set_script(SEE_SAW_SCRIPT)
+
+	var plank := AnimatableBody3D.new()
+	plank.name = "Plank"
+	plank.sync_to_physics = false
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(1.7, 0.22, 2.8)
+	shape.shape = box
+	plank.add_child(shape)
+	var visual := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(1.7, 0.22, 2.8)
+	visual.mesh = mesh
+	visual.material_override = _map_material(Color("#ffcf6b"))
+	plank.add_child(visual)
+	see_saw.add_child(plank)
+
+	var fulcrum := MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.16
+	cone.bottom_radius = 0.32
+	cone.height = 0.6
+	fulcrum.mesh = cone
+	fulcrum.position.y = -0.42
+	fulcrum.material_override = _map_material(Color("#8a6a3a"))
+	see_saw.add_child(fulcrum)
+
+	world.add_child(see_saw)
+	see_saw.configure(plank, player)
+
+
+func _add_log(route: Array, i: int, point: Vector3) -> void:
+	var log_roller := AnimatableBody3D.new()
+	log_roller.name = "LogRoller"
+	log_roller.set_script(ROTATING_LOG_SCRIPT)
+	log_roller.position = point + Vector3(0, 0.42, 0)
+	log_roller.rotation.y = _path_yaw(route, i)
+	log_roller.set("spin_speed", 2.5)
+	var shape := CollisionShape3D.new()
+	var cylinder := CylinderShape3D.new()
+	cylinder.radius = 0.42
+	cylinder.height = 2.6
+	shape.shape = cylinder
+	shape.rotation = Vector3(0, 0, PI / 2.0)
+	log_roller.add_child(shape)
+	var visual := MeshInstance3D.new()
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.42
+	mesh.bottom_radius = 0.42
+	mesh.height = 2.6
+	visual.mesh = mesh
+	visual.rotation = Vector3(0, 0, PI / 2.0)
+	visual.material_override = _map_material(Color("#b07a3c"))
+	log_roller.add_child(visual)
+	world.add_child(log_roller)
+
+
+func _add_barrel(route: Array, i: int, point: Vector3) -> void:
+	var direction: Vector3 = route[i + 1] - route[i] if i < route.size() - 1 else route[i] - route[i - 1]
+	direction.y = 0.0
+	var barrel := AnimatableBody3D.new()
+	barrel.name = "RollingBarrel"
+	barrel.set_script(ROLLING_BARREL_SCRIPT)
+	barrel.position = point + Vector3(0, 0.55, 0)
+	barrel.rotation.y = _path_yaw(route, i)
+	barrel.set("move_offset", direction.normalized() * 3.2)
+	barrel.set("move_speed", 1.0 + float(i % 3) * 0.25)
+	barrel.set("roll_speed", 4.0)
+	var shape := CollisionShape3D.new()
+	var cylinder := CylinderShape3D.new()
+	cylinder.radius = 0.45
+	cylinder.height = 1.0
+	shape.shape = cylinder
+	shape.rotation = Vector3(0, 0, PI / 2.0)
+	barrel.add_child(shape)
+	var visual := MeshInstance3D.new()
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.45
+	mesh.bottom_radius = 0.45
+	mesh.height = 1.0
+	visual.mesh = mesh
+	visual.rotation = Vector3(0, 0, PI / 2.0)
+	visual.material_override = _map_material(Color("#c47a3a"))
+	barrel.add_child(visual)
+	world.add_child(barrel)
+
+
+func _add_zone(point: Vector3, size: Vector3, script: Script, tint: Color, y_offset: float = 0.5) -> Area3D:
+	var zone := Area3D.new()
+	zone.position = point + Vector3(0, y_offset, 0)
+	zone.collision_layer = 0
+	zone.collision_mask = 1
+	zone.set_script(script)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	zone.add_child(shape)
+	var visual := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	visual.mesh = mesh
+	visual.position.y = 0.0
+	var material := _map_material(tint, true)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(tint.r, tint.g, tint.b, 0.45)
+	visual.material_override = material
+	zone.add_child(visual)
+	world.add_child(zone)
+	return zone
+
+
+func _add_slide(route: Array, i: int, point: Vector3) -> void:
+	var slide := StaticBody3D.new()
+	slide.name = "Slide"
+	slide.position = point + Vector3(0, 0.85, -1.2)
+	slide.rotation.y = _path_yaw(route, i)
+	slide.rotation.x = deg_to_rad(24.0)
+	var size := Vector3(1.7, 0.16, 4.0)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	slide.add_child(shape)
+	var visual := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	visual.mesh = mesh
+	var material := _map_material(Color("#7fd8ff"))
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(0.5, 0.85, 1.0, 0.75)
+	visual.material_override = material
+	slide.add_child(visual)
+	world.add_child(slide)
+	# Slippery coating so the player actually slides down the ramp.
+	_add_zone(point + Vector3(0, 0.4, -1.2), Vector3(2.0, 1.6, 4.2), SLIPPERY_SCRIPT, Color("#7fd8ff"), 0.0)
+
+
+func _build_gimmicks(level_number: int, route: Array) -> void:
+	if level_number != 6:
+		return
+	var n := route.size()
+	var used: Dictionary = _special["all"].duplicate()
+
+	var slippery := _spread(3, n, used)
+	for index in slippery:
+		used[index] = true
+	for index in slippery:
+		_add_zone(route[index], Vector3(2.4, 1.4, 2.4), SLIPPERY_SCRIPT, Color("#8fe0ff"))
+
+	var sticky := _spread(2, n, used)
+	for index in sticky:
+		used[index] = true
+	for index in sticky:
+		_add_zone(route[index], Vector3(2.4, 1.4, 2.4), STICKY_SCRIPT, Color("#c0a06a"))
+
+	var bounce := _spread(3, n, used)
+	for index in bounce:
+		used[index] = true
+	for index in bounce:
+		_add_zone(route[index], Vector3(2.0, 1.2, 2.0), BOUNCE_SCRIPT, Color("#ff8ad0"))
+		_add_bounce_disc(route[index])
+
+	var fans := _spread(2, n, used)
+	for index in fans:
+		used[index] = true
+	for index in fans:
+		_add_fan(route[index])
+
+	var slides := _spread(1, n, used)
+	for index in slides:
+		used[index] = true
+	for index in slides:
+		_add_slide(route, index, route[index])
+
+	var barrels := _spread(3, n, used)
+	for index in barrels:
+		used[index] = true
+	for index in barrels:
+		_add_barrel(route, index, route[index])
+
+
+func _add_bounce_disc(point: Vector3) -> void:
+	var disc := MeshInstance3D.new()
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.9
+	mesh.bottom_radius = 0.9
+	mesh.height = 0.12
+	disc.mesh = mesh
+	disc.position = point + Vector3(0, 0.56, 0)
+	disc.material_override = _map_material(Color("#ff5fb8"), true)
+	world.add_child(disc)
+
+
+func _add_fan(point: Vector3) -> void:
+	# Tall wind column; the FanTunnel area lifts the player while inside.
+	_add_zone(point, Vector3(2.2, 7.0, 2.2), FAN_SCRIPT, Color("#bff4ff"), 3.4)
+	_add_fan_ring(point + Vector3(0, 0.6, 0))
+
+
+func _add_fan_ring(point: Vector3) -> void:
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.7
+	torus.outer_radius = 0.92
+	ring.mesh = torus
+	ring.rotation.x = PI / 2.0
+	ring.position = point
+	ring.material_override = _map_material(Color("#9be8ff"), true)
+	world.add_child(ring)
+
+
 # --- Locked gate + lever puzzle ---------------------------------------------
 
 func _build_puzzle(level_number: int, route: Array) -> void:
 	var n := route.size()
+	# Twin-button puzzle: one button near the start, one near the flag, with a
+	# locked inner gate in the middle. The first button opens the inner gate,
+	# the second opens the final gate to the flag. Complex platforms and hazards
+	# fill the whole stretch between the two buttons.
+	var inner := _inner_gate_segment(route)
+	_add_gate(route[inner], route[inner + 1])
 	_add_gate(route[n - 2], route[n - 1])
 	for index in _pick_switch_indices(level_number, n):
 		_add_lever(route[index])
 
 
+## Picks the row-transition segment nearest the middle of the course, where an
+## inner gate can block all forward progress.
+func _inner_gate_segment(route: Array) -> int:
+	var n := route.size()
+	var middle := floori(n / 2.0)
+	var best := clampi(middle, 1, n - 2)
+	var best_distance := n + 1
+	for m in range(1, n - 2):
+		var direction: Vector3 = route[m + 1] - route[m]
+		if absf(direction.z) > absf(direction.x):
+			var distance := absi(m - middle)
+			if distance < best_distance:
+				best_distance = distance
+				best = m
+	return best
+
+
 func _pick_switch_indices(level_number: int, n: int) -> Array[int]:
+	# One button as close to the start as possible, one as close to the flag as
+	# possible, so the two buttons are always far apart.
 	var blocked: Dictionary = _special["all"].duplicate()
-	return _spread(_switch_count(level_number), n, blocked)
+	for index in _get_checkpoint_indices(level_number, n):
+		blocked[index] = true
+	var first := 2
+	while blocked.has(first) and first < n - 1:
+		first += 1
+	blocked[first] = true
+	var last := n - 2
+	while blocked.has(last) and last > 1:
+		last -= 1
+	return [first, last]
 
 
 func _add_gate(from_point: Vector3, to_point: Vector3) -> void:
@@ -423,6 +721,21 @@ func _add_lever(point: Vector3) -> void:
 	ring.material_override = _map_material(Color("#ff8fa6"), true)
 	lever.add_child(ring)
 
+	# A tall glowing beacon so the two buttons can be spotted from far away.
+	var beacon := MeshInstance3D.new()
+	beacon.name = "ButtonBeacon"
+	var beam := CylinderMesh.new()
+	beam.top_radius = 0.07
+	beam.bottom_radius = 0.07
+	beam.height = 2.4
+	beacon.mesh = beam
+	beacon.position.y = 1.55
+	var beam_material := _map_material(Color("#ffa3b5"), true)
+	beam_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	beam_material.albedo_color = Color(1.0, 0.55, 0.66, 0.5)
+	beacon.material_override = beam_material
+	lever.add_child(beacon)
+
 	world.add_child(lever)
 	switches.append(lever)
 
@@ -442,17 +755,16 @@ func _press_switch(lever: Node3D) -> void:
 	material.albedo_color = Color("#65f6ad")
 	material.emission = Color("#25ff95")
 	switches_pressed += 1
+	# Each button opens the gate that corresponds to it (inner gate first, then
+	# the final gate to the flag).
+	var gate_index := switches_pressed - 1
+	if gate_index >= 0 and gate_index < gates.size():
+		gates[gate_index].open()
 	if switches_pressed >= switches.size():
-		_solve_puzzle()
+		puzzle_solved = true
+		hud.show_finish_message("Both buttons pressed! The flag gate is open!")
 	else:
-		hud.show_finish_message("Switch %d/%d activated!" % [switches_pressed, switches.size()])
-
-
-func _solve_puzzle() -> void:
-	puzzle_solved = true
-	for gate in gates:
-		gate.open()
-	hud.show_finish_message("Gate open! Reach the flag!")
+		hud.show_finish_message("Button %d of %d pressed - a gate opened ahead!" % [switches_pressed, switches.size()])
 
 
 func _add_checkpoint(point: Vector3, checkpoint_index: int) -> void:
@@ -511,6 +823,10 @@ func respawn_player() -> void:
 	Engine.time_scale = 1.0
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	player.is_dead = false
+	player.slippery = false
+	player.sticky = false
+	player.external_velocity = Vector3.ZERO
+	player.wind_lift = 0.0
 	player.global_position = checkpoint_position
 	player.velocity = Vector3.ZERO
 	player.movement_velocity = Vector3.ZERO
@@ -760,6 +1076,8 @@ func _get_level_routes() -> Array:
 		_serpentine_route(5, 6, 2.4, 0.3),
 		# 5 Sky Crown: 36 platforms, the longest and hardest course.
 		_serpentine_route(6, 6, 2.4, 0.3),
+		# 6 Gimmick Gauntlet: 42 platforms stuffed with new puzzle surfaces.
+		_serpentine_route(6, 7, 2.4, 0.28),
 	]
 
 

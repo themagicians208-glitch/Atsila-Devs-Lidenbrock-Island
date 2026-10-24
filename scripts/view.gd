@@ -14,13 +14,14 @@ extends Node3D
 
 var camera_rotation:Vector3
 var zoom = 10
+var settings: Node
 
 @onready var camera = $Camera
 
 func _ready():
 	
 	camera_rotation = rotation_degrees # Initial rotation
-	
+	settings = get_node_or_null("/root/Settings")
 	pass
 
 func _physics_process(delta):
@@ -56,8 +57,11 @@ func handle_input(delta):
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		camera_rotation.y -= event.relative.x * mouse_sensitivity
-		camera_rotation.x -= event.relative.y * mouse_sensitivity
+		var sensitivity: float = mouse_sensitivity
+		if settings:
+			sensitivity = settings.mouse_sensitivity
+		camera_rotation.y -= event.relative.x * sensitivity
+		camera_rotation.x -= event.relative.y * sensitivity
 		camera_rotation.x = clampf(camera_rotation.x, -80.0, -10.0)
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:

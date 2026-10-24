@@ -25,6 +25,12 @@ var coins = 0
 
 var is_dead := false
 
+# Surface / gimmick state (set by zones in level 6)
+var slippery := false                  # ice / oil slick: little traction
+var sticky := false                    # velcro: kills horizontal momentum
+var external_velocity := Vector3.ZERO  # conveyor push (log rollers, slides)
+var wind_lift := 0.0                   # fan tunnel updraft
+
 @onready var particles_trail = $ParticlesTrail
 @onready var sound_footsteps = $SoundFootsteps
 @onready var model = $Character
@@ -76,8 +82,14 @@ func _physics_process(delta):
 
 	var applied_velocity: Vector3
 
-	applied_velocity = velocity.lerp(movement_velocity, delta * 10)
+	var control := 3.0 if slippery else 10.0
+	applied_velocity = velocity.lerp(movement_velocity, delta * control)
 	applied_velocity.y = -gravity
+	applied_velocity.x += external_velocity.x
+	applied_velocity.z += external_velocity.z
+	if sticky:
+		applied_velocity.x = 0.0
+		applied_velocity.z = 0.0
 
 	velocity = applied_velocity
 	move_and_slide()
@@ -167,6 +179,12 @@ func handle_controls(delta):
 
 func handle_gravity(delta):
 
+	if wind_lift > 0.0:
+		# A fan tunnel overrides gravity and carries the player upward.
+		gravity = -wind_lift
+		jumps_remaining = 2
+		return
+
 	if is_on_floor() and gravity >= 0.0:
 		gravity = 0
 		jumps_remaining = 2
@@ -192,6 +210,36 @@ func cloud_bounce() -> void:
 	jumps_remaining = 2
 	model.scale = Vector3(0.75, 1.3, 0.75)
 	Audio.play("res://sounds/jump.ogg")
+
+
+# Gimmick surfaces (level 6)
+
+func bounce(strength: float) -> void:
+	gravity = -strength
+	jumps_remaining = 2
+	model.scale = Vector3(0.7, 1.4, 0.7)
+	Audio.play("res://sounds/jump.ogg")
+
+
+func set_slippery(enabled: bool) -> void:
+	slippery = enabled
+
+
+func set_sticky(enabled: bool) -> void:
+	sticky = enabled
+	if enabled:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		movement_velocity.x = 0.0
+		movement_velocity.z = 0.0
+
+
+func set_conveyor(push: Vector3) -> void:
+	external_velocity = push
+
+
+func set_wind(lift: float) -> void:
+	wind_lift = lift
 
 # Collecting coins
 

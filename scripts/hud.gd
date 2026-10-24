@@ -87,7 +87,7 @@ func _update_coin_counter(coins: int) -> void:
 
 func _build_game_hud() -> void:
 	objective_hint = Label.new()
-	objective_hint.text = "SHIFT DIMENSIONS  •  COLLECT COINS  •  TOUCH CHECKPOINTS  •  HIT THE SWITCH  •  REACH THE FLAG"
+	objective_hint.text = "SHIFT DIMENSIONS  •  COLLECT COINS  •  PRESS BOTH FAR-APART BUTTONS  •  REACH THE FLAG"
 	objective_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	objective_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	objective_hint.offset_left = -600

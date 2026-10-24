@@ -4,7 +4,7 @@
   <img src="branding/skybound-banner.svg" alt="Skybound Showdown — five sky-island obstacle courses" width="100%">
 </p>
 
-**Skybound Showdown** is a single-player 3D dimension-shifting platform adventure made with Godot 4.7. Run and double-jump across five sky-island obstacle courses, shifting between Material and Mirror dimensions to reveal alternate platforms and routes. Collect every coin, activate the switch, and reach the finish flag.
+**Skybound Showdown** is a single-player 3D dimension-shifting platform adventure made with Godot 4.7. Run and double-jump across five sky-island obstacle courses, shifting between Material and Mirror dimensions to reveal alternate platforms and routes. The game features a variety of environmental hazards including bounce pads, fan tunnels, rolling barrels, and slippery/sticky zones. Collect every coin, activate the switch, and reach the finish flag.
 
 ## Play
 
