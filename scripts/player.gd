@@ -10,6 +10,11 @@ signal died
 @export var movement_speed = 250
 @export var jump_strength = 7
 
+@export_subgroup("Dash Skill")
+@export var dash_speed_multiplier := 2.0
+@export var dash_duration := 1.0
+@export var dash_cooldown := 10.0
+
 var movement_velocity: Vector3
 var rotation_direction: float
 var gravity = 0
@@ -24,6 +29,15 @@ var jumps_remaining := 2
 var coins = 0
 
 var is_dead := false
+
+# Dash skill state
+var is_dashing := false
+var dash_time_left := 0.0
+var dash_cooldown_left := 0.0
+var dash_lean := 0.0
+var dash_bob := 0.0
+var model_rest_rotation := Vector3.ZERO
+var model_rest_position := Vector3.ZERO
 
 # Surface / gimmick state (set by zones in level 6)
 var slippery := false                  # ice / oil slick: little traction
@@ -54,6 +68,9 @@ func _ready() -> void:
 		mouse_jump.button_index = MOUSE_BUTTON_LEFT
 		mouse_jump.device = -1
 		InputMap.action_add_event("jump", mouse_jump)
+	_ensure_dash_action()
+	model_rest_rotation = model.rotation
+	model_rest_position = model.position
 
 
 func _jump_has_mouse_binding() -> bool:
@@ -61,6 +78,21 @@ func _jump_has_mouse_binding() -> bool:
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 			return true
 	return false
+
+
+func _ensure_dash_action() -> void:
+	if InputMap.has_action("dash"):
+		return
+	InputMap.add_action("dash")
+	InputMap.action_set_deadzone("dash", 0.5)
+	var key := InputEventKey.new()
+	key.physical_keycode = KEY_SHIFT
+	key.device = -1
+	InputMap.action_add_event("dash", key)
+	var button := InputEventJoypadButton.new()
+	button.button_index = JOY_BUTTON_RIGHT_SHOULDER
+	button.device = -1
+	InputMap.action_add_event("dash", button)
 
 # Functions
 
@@ -70,6 +102,11 @@ func _physics_process(delta):
 
 	if Input.is_action_just_pressed("time_freeze") and freeze_cooldown <= 0.0:
 		_activate_time_freeze()
+
+	if Input.is_action_just_pressed("dash") and dash_cooldown_left <= 0.0 and not is_dashing:
+		_start_dash()
+
+	_update_dash(delta)
 
 	# Handle functions
 
@@ -109,6 +146,8 @@ func _physics_process(delta):
 	# Animation for scale (jumping and landing)
 
 	model.scale = model.scale.lerp(Vector3(1, 1, 1), delta * 10)
+
+	handle_dash_animation(delta)
 
 	# Animation when landing
 
@@ -166,7 +205,12 @@ func handle_controls(delta):
 	if input.length() > 1:
 		input = input.normalized()
 
-	movement_velocity = input * movement_speed * delta
+	# Dash: if no direction is held, burst forward in the facing direction.
+	if is_dashing and input.length_squared() < 0.0001:
+		input = Vector3(sin(rotation.y), 0.0, cos(rotation.y))
+
+	var speed_multiplier := dash_speed_multiplier if is_dashing else 1.0
+	movement_velocity = input * movement_speed * speed_multiplier * delta
 
 	# Jumping
 
@@ -241,6 +285,42 @@ func set_conveyor(push: Vector3) -> void:
 func set_wind(lift: float) -> void:
 	wind_lift = lift
 
+# Dash skill
+
+func _start_dash() -> void:
+	is_dashing = true
+	dash_time_left = dash_duration
+	dash_bob = 0.0
+	Audio.play("res://sounds/jump.ogg")
+
+
+func _end_dash() -> void:
+	is_dashing = false
+	dash_time_left = 0.0
+	dash_cooldown_left = dash_cooldown
+
+
+func _update_dash(delta: float) -> void:
+	if is_dashing:
+		dash_time_left -= delta
+		if dash_time_left <= 0.0:
+			_end_dash()
+	elif dash_cooldown_left > 0.0:
+		dash_cooldown_left = maxf(dash_cooldown_left - delta, 0.0)
+
+
+func handle_dash_animation(delta: float) -> void:
+	# Lean into the dash and bob for a speedy look while moving fast.
+	var target_lean := 0.35 if is_dashing else 0.0
+	dash_lean = lerpf(dash_lean, target_lean, delta * 12.0)
+	model.rotation = Vector3(model_rest_rotation.x + dash_lean, model_rest_rotation.y, model_rest_rotation.z)
+
+	if is_dashing:
+		dash_bob += delta * 22.0
+		model.position.y = model_rest_position.y + sin(dash_bob) * 0.05
+	else:
+		model.position.y = lerpf(model.position.y, model_rest_position.y, delta * 10.0)
+
 # Collecting coins
 
 func collect_coin():
@@ -259,6 +339,9 @@ func die() -> void:
 	velocity = Vector3.ZERO
 	movement_velocity = Vector3.ZERO
 	gravity = 0.0
+	is_dashing = false
+	dash_time_left = 0.0
+	dash_cooldown_left = 0.0
 	died.emit()
 
 
