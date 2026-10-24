@@ -37,6 +37,13 @@ Leap across floating islands, hunt down every coin, activate switches, and race 
 - 💛 **Use checkpoints** — reach checkpoint beacons to save your respawn point.
 - 🚩 **Solve and finish** — activate the switches, open the gates, and reach the flag.
 
+## 📸 Gallery
+
+<p align="center">
+  <img src="screenshots/screenshot1.jpg" width="45%" />
+  <img src="screenshots/screenshot2.jpg" width="45%" />
+</p>
+
 ## 🏝️ Choose your course
 
 | # | Course | Your challenge |
